@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #f2f1ef;
+  --color-border: #eeece8;
+  --color-border-strong: #e5e5e3;
+  --color-muted: #6b6b68;
+  --color-muted-2: #a3a19c;
+  --color-success: #16a34a;
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-playfair);
+  --font-display: var(--font-bebas);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  /* Altura real del header (fixed): Header.tsx la mide y la actualiza en
+   * cuanto monta. Este valor es solo el estimado inicial para el primer
+   * render (SSR / antes de que corra el JS). */
+  --header-h: 88px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+/* En Tailwind v4 las utilidades (text-white, etc.) viven dentro de
+ * @layer utilities. Cualquier CSS declarado SIN capa gana automáticamente
+ * sobre CSS con capa, sin importar la especificidad — así que estos estilos
+ * base van dentro de @layer base para no pisar las clases de Tailwind
+ * aplicadas a <a>, <button>, etc. (esto causaba, por ejemplo, que el
+ * text-white del botón "Comprar ahora" nunca se viera). */
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans), sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #d8d6d2;
+    border-radius: 4px;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-muted-2);
+  }
+
+  button {
+    cursor: pointer;
+    font-family: inherit;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 22s linear infinite;
+}
