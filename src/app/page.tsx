@@ -25,12 +25,17 @@ export default async function HomePage() {
           ~40% del alto de pantalla (con recorte de imagen vía object-cover,
           a pedido) en vez de seguir el aspect-ratio real del banner; en
           escritorio sí se respeta el aspect-ratio 1920x700 sin recortes.
-          El contenido del banner (badge+texto+botellas) ocupa del 23% al
-          78.5% del ancho de la imagen — centrado casi exacto (medido con
-          sharp) — por eso object-center (el default) es lo correcto; un
-          recorte a la izquierda o derecha pierde la mitad del contenido.
-          -mt-24 en todos los tamaños: el header es "fixed" siempre (ver
-          Header.tsx) y flota transparente encima de este hero. */}
+          El contenido (badge+texto+botellas) ocupa del 23% al 78.5% del
+          ancho de la imagen (55.5%) — más ancho que lo que un móvil típico
+          en 40vh alcanza a mostrar (~42%, medido con un iPhone real de
+          414x896 → hero renderizado a 414x358px), así que SIEMPRE se
+          recorta algo. object-center recortaba el inicio del texto (precio,
+          badge) Y la 3ra botella a la vez — peor que priorizar. Con
+          object-position 40% horizontal se ve el texto/precio/oferta
+          COMPLETO (lo más importante para conversión) y se alcanza a ver
+          la 1ra botella entera + la 2da parcial. -mt-24 en todos los
+          tamaños: el header es "fixed" siempre (ver Header.tsx) y flota
+          transparente encima de este hero. */}
       <section className="relative -mt-24 h-[40vh] min-h-[260px] w-full lg:aspect-[1920/700] lg:h-auto lg:min-h-0">
         <Image
           src={heroMasVendido}
@@ -38,7 +43,7 @@ export default async function HomePage() {
           fill
           sizes="100vw"
           priority
-          className="object-cover"
+          className="object-cover object-[40%_50%] lg:object-center"
         />
         <div className="absolute right-6 bottom-9 md:right-10">
           <Link
