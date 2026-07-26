@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "@/context/CartContext";
-import { formatPEN } from "@/lib/pricing";
+import { formatPEN, sizeLabel } from "@/lib/pricing";
 import { estimateShippingCost, type ShippingMethod } from "@/lib/shipping";
 import {
   getProvincias,
@@ -251,7 +251,7 @@ export function CheckoutModal() {
                     {comboItems.map((item, i) => (
                       <div key={`combo-${i}`} className="flex justify-between text-[13px]">
                         <span>
-                          {item.qty}× {item.name} ({item.size}ML)
+                          {item.qty}× {item.name} ({sizeLabel(item.size)})
                         </span>
                         <span className="font-medium">S/. {formatPEN(item.unitPrice * item.qty)}</span>
                       </div>
@@ -269,7 +269,7 @@ export function CheckoutModal() {
                   {individualItems.map((item, i) => (
                     <div key={`ind-${i}`} className="flex justify-between text-[13px]">
                       <span>
-                        {item.qty}× {item.name} ({item.size}ML)
+                        {item.qty}× {item.name} ({sizeLabel(item.size)})
                       </span>
                       <span className="font-medium">S/. {formatPEN(item.unitPrice * item.qty)}</span>
                     </div>

@@ -32,6 +32,9 @@ export type Database = {
           name: string;
           category_slug: string;
           price: number;
+          price_3ml: number | null;
+          price_10ml: number | null;
+          price_full_bottle: number | null;
           original_price: number | null;
           badge: string | null;
           best_seller: boolean;
@@ -97,14 +100,22 @@ export type Database = {
           order_id: string;
           product_id: number;
           product_name: string;
-          size: "3" | "5" | "10";
+          size: "3" | "5" | "10" | "full";
           unit_price: number;
           qty: number;
           is_combo: boolean;
         };
         Insert: Partial<Database["public"]["Tables"]["order_items"]["Row"]>;
         Update: Partial<Database["public"]["Tables"]["order_items"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       contact_messages: {
         Row: {
@@ -122,6 +133,45 @@ export type Database = {
         };
         Update: Partial<Database["public"]["Tables"]["contact_messages"]["Row"]>;
         Relationships: [];
+      };
+      admin_users: {
+        Row: {
+          id: string;
+          email: string;
+          role: "owner";
+          active: boolean;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["admin_users"]["Row"]> & {
+          id: string;
+          email: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["admin_users"]["Row"]>;
+        Relationships: [];
+      };
+      product_images: {
+        Row: {
+          id: number;
+          product_id: number;
+          url: string;
+          sort_order: number;
+          is_primary: boolean;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["product_images"]["Row"]> & {
+          product_id: number;
+          url: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["product_images"]["Row"]>;
+        Relationships: [
+          {
+            foreignKeyName: "product_images_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: {
@@ -141,12 +191,16 @@ export type Database = {
           p_notes: string | null;
           p_items: {
             product_id: number;
-            size: "3" | "5" | "10";
+            size: "3" | "5" | "10" | "full";
             qty: number;
             is_combo: boolean;
           }[];
         };
         Returns: number;
+      };
+      is_admin: {
+        Args: Record<string, never>;
+        Returns: boolean;
       };
     };
   };

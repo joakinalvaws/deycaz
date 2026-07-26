@@ -12,6 +12,9 @@ export type Product = {
   name: string;
   categorySlug: string;
   price: number;
+  price3ml: number | null;
+  price10ml: number | null;
+  priceFullBottle: number | null;
   originalPrice: number | null;
   badge: string | null;
   bestSeller: boolean;

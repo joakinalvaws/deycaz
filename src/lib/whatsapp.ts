@@ -2,6 +2,11 @@ import type { CartItem } from "./types";
 import type { ShippingMethod } from "./shipping";
 import { SPRAYS_BY_SIZE, formatPEN } from "./pricing";
 
+function describeItemSize(item: CartItem): string {
+  if (item.size === "full") return "Frasco completo";
+  return `${item.size}ml / ${SPRAYS_BY_SIZE[item.size]} sprays`;
+}
+
 export type WhatsAppOrderMessageParams = {
   orderNumber: number;
   nombre: string;
@@ -32,7 +37,7 @@ export function buildOrderWhatsAppMessage(params: WhatsAppOrderMessageParams): s
     "",
     ...params.items.flatMap((i) => [
       `📦 Producto: ${i.name}`,
-      `🔢 Cantidad: ${i.qty} ${i.name} - ${i.size}ml / ${SPRAYS_BY_SIZE[i.size] ?? ""} sprays`,
+      `🔢 Cantidad: ${i.qty} ${i.name} - ${describeItemSize(i)}`,
     ]),
     "",
     `💰 Total a pagar: S/. ${formatPEN(params.total)}`,

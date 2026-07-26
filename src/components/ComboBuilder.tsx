@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "@/context/CartContext";
-import { FLAT_COMBO_SIZE_PRICE, SIZES, formatPEN, type Size } from "@/lib/pricing";
+import { FLAT_COMBO_SIZE_PRICE, SIZES, formatPEN, type ComboSize } from "@/lib/pricing";
 import { getBundleDiscount } from "@/lib/bundleDiscount";
 import type { Category, Product } from "@/lib/types";
 import { ProductImage } from "./ProductImage";
@@ -109,7 +109,7 @@ export function ComboBuilder({
   products: Product[];
 }) {
   const [category, setCategory] = useState<string | null>(null);
-  const [size, setSize] = useState<Size | null>(null);
+  const [size, setSize] = useState<ComboSize | null>(null);
   const [selected, setSelected] = useState<number[]>([]);
   const [search, setSearch] = useState("");
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);

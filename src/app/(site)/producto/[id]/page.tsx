@@ -72,6 +72,9 @@ export default async function ProductoPage({ params }: { params: Promise<{ id: s
           name={product.name}
           categorySlug={product.categorySlug}
           basePrice={product.price}
+          price3ml={product.price3ml}
+          price10ml={product.price10ml}
+          priceFullBottle={product.priceFullBottle}
           description={product.description}
         />
 

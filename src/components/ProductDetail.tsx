@@ -1,38 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useCart } from "@/context/CartContext";
-import { SIZES, priceForSize, formatPEN, type Size } from "@/lib/pricing";
+import { PRODUCT_PAGE_SIZES, getSizePrice, formatPEN, type Size } from "@/lib/pricing";
 
 const GENERIC_DESCRIPTION =
   "Decant 100% original, envasado y sellado con cuidado. Ideal para descubrir tu fragancia antes de invertir en el frasco completo.";
+
+const SIZE_LABEL: Record<Size, string> = {
+  "3": "3ML",
+  "5": "5ML",
+  "10": "10ML",
+  full: "FRASCO",
+};
 
 export function ProductDetail({
   productId,
   name,
   categorySlug,
   basePrice,
+  price3ml,
+  price10ml,
+  priceFullBottle,
   description,
 }: {
   productId: number;
   name: string;
   categorySlug: string;
   basePrice: number;
+  price3ml: number | null;
+  price10ml: number | null;
+  priceFullBottle: number | null;
   description: string | null;
 }) {
+  const pricing = { price: basePrice, price3ml, price10ml, priceFullBottle };
+  const availableSizes = useMemo(() => {
+    const p = { price: basePrice, price3ml, price10ml, priceFullBottle };
+    return PRODUCT_PAGE_SIZES.filter((sz) => getSizePrice(p, sz) !== null);
+  }, [basePrice, price3ml, price10ml, priceFullBottle]);
+
   const [size, setSize] = useState<Size>("5");
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
 
+  const currentPrice = getSizePrice(pricing, size);
+
   return (
     <div>
       <div className="text-muted mb-2.5 text-[32px] font-extrabold">
-        S/. {formatPEN(priceForSize(basePrice, size))}.00
+        S/. {formatPEN(currentPrice ?? basePrice)}.00
       </div>
 
       <div className="text-muted mb-2.5 text-xs font-bold tracking-wide">TAMAÑO</div>
       <div className="mb-7 flex gap-3">
-        {SIZES.map((sz) => (
+        {availableSizes.map((sz) => (
           <button
             key={sz}
             type="button"
@@ -41,8 +62,8 @@ export function ProductDetail({
               size === sz ? "border-foreground bg-foreground text-white" : "border-border-strong bg-white"
             }`}
           >
-            <div className="text-[15px] font-extrabold">{sz}ML</div>
-            <div className="mt-1 text-[11px]">S/. {formatPEN(priceForSize(basePrice, sz))}</div>
+            <div className="text-[15px] font-extrabold">{SIZE_LABEL[sz]}</div>
+            <div className="mt-1 text-[11px]">S/. {formatPEN(getSizePrice(pricing, sz) ?? 0)}</div>
           </button>
         ))}
       </div>
@@ -50,12 +71,13 @@ export function ProductDetail({
       <button
         type="button"
         onClick={() => {
+          if (currentPrice == null) return;
           addItem({
             productId,
             name,
             categorySlug,
             size,
-            unitPrice: priceForSize(basePrice, size),
+            unitPrice: currentPrice,
             qty: 1,
           });
           setAdded(true);

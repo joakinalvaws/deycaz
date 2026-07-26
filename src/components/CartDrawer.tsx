@@ -1,7 +1,7 @@
 "use client";
 
 import { useCart } from "@/context/CartContext";
-import { formatPEN } from "@/lib/pricing";
+import { formatPEN, sizeLabel } from "@/lib/pricing";
 import { BundleDiscountSummary } from "./BundleDiscountSummary";
 import { FreeShippingSummary } from "./FreeShippingSummary";
 
@@ -38,7 +38,7 @@ export function CartDrawer() {
                   )}
                 </div>
                 <div className="text-muted-2 mb-2 text-xs">
-                  {item.size}ML · S/. {formatPEN(item.unitPrice)}
+                  {sizeLabel(item.size)} · S/. {formatPEN(item.unitPrice)}
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5 border border-border-strong">

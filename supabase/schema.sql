@@ -26,6 +26,14 @@ create table if not exists products (
   name            text not null,
   category_slug   text not null references categories(slug),
   price           numeric not null check (price > 0),        -- precio base (equivale al tamaño 5ml)
+  -- Overrides opcionales por tamaño — si son null, el precio de ese tamaño
+  -- se sigue calculando con la fórmula vieja (70%/170% de `price`) como
+  -- valor por defecto. `price_full_bottle` es un tamaño nuevo (perfume
+  -- completo, no decant); si queda null, ese producto simplemente no
+  -- ofrece la opción de frasco entero.
+  price_3ml         numeric check (price_3ml is null or price_3ml > 0),
+  price_10ml        numeric check (price_10ml is null or price_10ml > 0),
+  price_full_bottle numeric check (price_full_bottle is null or price_full_bottle > 0),
   original_price  numeric check (original_price is null or original_price > price),
   badge           text,
   best_seller     boolean not null default false,
@@ -106,7 +114,7 @@ create table if not exists order_items (
   order_id      uuid not null references orders(id) on delete cascade,
   product_id    bigint not null references products(id),
   product_name  text not null,   -- snapshot: se conserva aunque el producto cambie/se borre
-  size          text not null check (size in ('3','5','10')),
+  size          text not null check (size in ('3','5','10','full')),
   unit_price    numeric not null check (unit_price >= 0),
   qty           int not null check (qty > 0),
   is_combo      boolean not null default false
@@ -139,7 +147,11 @@ create policy "contact_messages_public_insert" on contact_messages
 -- Crea el pedido y sus items en una sola transacción, recalculando TODOS
 -- los precios y el costo de envío en el servidor (nunca confía en lo
 -- enviado desde el cliente). Reglas de precio:
---   - Item individual: 3ml = base*0.7, 5ml = base, 10ml = base*1.7 (redondeado)
+--   - Item individual: usa el precio propio del tamaño si el producto lo
+--     tiene cargado (price_3ml/price_10ml/price_full_bottle); si no,
+--     3ml/10ml caen al valor por defecto base*0.7 / base*1.7 (redondeado).
+--     'full' (frasco entero) exige que el producto tenga price_full_bottle
+--     configurado, y nunca puede pedirse como parte de un combo.
 --   - Item de "Arma tu Combo" (is_combo=true): precio plano por tamaño
 --     (3ml=S/.30, 5ml=S/.45, 10ml=S/.75), sin descuento incrustado por
 --     unidad. El descuento se resta una sola vez sobre el subtotal total,
@@ -230,11 +242,14 @@ begin
       raise exception 'Producto % no disponible', (v_item->>'product_id');
     end if;
 
-    if (v_item->>'size') not in ('3','5','10') then
+    if (v_item->>'size') not in ('3','5','10','full') then
       raise exception 'Tamaño inválido';
     end if;
 
     if coalesce((v_item->>'is_combo')::boolean, false) then
+      if (v_item->>'size') = 'full' then
+        raise exception 'El frasco entero no puede agregarse como combo';
+      end if;
       v_flat_price := case (v_item->>'size')
         when '3' then 30 when '5' then 45 when '10' then 75
       end;
@@ -242,9 +257,13 @@ begin
       -- resta una sola vez sobre el subtotal total del pedido (más abajo).
       v_unit_price := v_flat_price;
     else
+      if (v_item->>'size') = 'full' and v_product.price_full_bottle is null then
+        raise exception 'Este producto no tiene precio de frasco entero configurado';
+      end if;
       v_unit_price := case (v_item->>'size')
-        when '3' then round(v_product.price * 0.7)
-        when '10' then round(v_product.price * 1.7)
+        when '3' then coalesce(v_product.price_3ml, round(v_product.price * 0.7))
+        when '10' then coalesce(v_product.price_10ml, round(v_product.price * 1.7))
+        when 'full' then v_product.price_full_bottle
         else v_product.price
       end;
     end if;
@@ -294,3 +313,92 @@ end;
 $$;
 
 grant execute on function public.place_order(text, text, text, text, text, text, text, text, text, jsonb) to anon, authenticated;
+
+-- ============================================================
+-- PANEL ADMINISTRATIVO (agregado en migración 0007)
+-- ============================================================
+-- Un solo rol hoy ('owner', dueño único) — agregar 'staff' en el futuro es
+-- ampliar este check + las policies que lo necesiten, no un cambio de
+-- arquitectura. Sin policies públicas ni de admin sobre esta tabla: se
+-- administra a mano desde el SQL Editor / Table Editor.
+create table if not exists admin_users (
+  id         uuid primary key references auth.users(id) on delete cascade,
+  email      text not null,
+  role       text not null default 'owner' check (role in ('owner')),
+  active     boolean not null default true,
+  created_at timestamptz not null default now()
+);
+alter table admin_users enable row level security;
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from admin_users where id = auth.uid() and active
+  );
+$$;
+
+-- IMPORTANTE: también a `anon` — las policies de admin de abajo se evalúan
+-- para TODA request a esas tablas, incluidas las públicas del sitio (anon).
+-- Sin este grant, el catálogo público dejaría de funcionar.
+grant execute on function public.is_admin() to anon, authenticated;
+
+-- Galería de imágenes por producto (products.image_url sigue existiendo,
+-- es la imagen que muestra el sitio público; se mantiene sincronizada
+-- desde el admin al marcar una imagen como principal).
+create table if not exists product_images (
+  id          bigint generated always as identity primary key,
+  product_id  bigint not null references products(id) on delete cascade,
+  url         text not null,
+  sort_order  int not null default 0,
+  is_primary  boolean not null default false,
+  created_at  timestamptz not null default now()
+);
+create index if not exists product_images_product_idx on product_images(product_id);
+alter table product_images enable row level security;
+create policy "product_images_public_read" on product_images for select using (true);
+create policy "product_images_admin_all" on product_images for all using (is_admin()) with check (is_admin());
+
+-- Policies de admin — adicionales, conviven con las públicas ya definidas
+-- arriba (Postgres combina policies del mismo comando con OR).
+create policy "products_admin_all" on products for all using (is_admin()) with check (is_admin());
+create policy "categories_admin_all" on categories for all using (is_admin()) with check (is_admin());
+create policy "testimonials_admin_all" on testimonials for all using (is_admin()) with check (is_admin());
+
+-- orders/order_items: el INSERT sigue siendo exclusivo de place_order()
+-- (security definer, no lo afecta RLS) — el admin solo lee y actualiza
+-- pedidos ya creados, nunca inserta a mano.
+create policy "orders_admin_select" on orders for select using (is_admin());
+create policy "orders_admin_update" on orders for update using (is_admin()) with check (is_admin());
+create policy "order_items_admin_select" on order_items for select using (is_admin());
+
+create policy "contact_messages_admin_select" on contact_messages for select using (is_admin());
+create policy "contact_messages_admin_update" on contact_messages for update using (is_admin()) with check (is_admin());
+
+-- Bucket de Storage para las fotos de producto subidas desde el admin
+-- (público — el sitio público las muestra sin login). `storage.objects`
+-- tiene su propio RLS, separado del de las tablas normales.
+insert into storage.buckets (id, name, public)
+values ('product-images', 'product-images', true)
+on conflict (id) do nothing;
+
+create policy "product_images_storage_public_read"
+  on storage.objects for select
+  using (bucket_id = 'product-images');
+
+create policy "product_images_storage_admin_insert"
+  on storage.objects for insert
+  with check (bucket_id = 'product-images' and is_admin());
+
+create policy "product_images_storage_admin_update"
+  on storage.objects for update
+  using (bucket_id = 'product-images' and is_admin())
+  with check (bucket_id = 'product-images' and is_admin());
+
+create policy "product_images_storage_admin_delete"
+  on storage.objects for delete
+  using (bucket_id = 'product-images' and is_admin());

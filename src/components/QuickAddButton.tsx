@@ -1,7 +1,6 @@
 "use client";
 
 import { useCart } from "@/context/CartContext";
-import { priceForSize } from "@/lib/pricing";
 
 export function QuickAddButton({
   productId,
@@ -28,7 +27,7 @@ export function QuickAddButton({
           name,
           categorySlug,
           size: "5",
-          unitPrice: priceForSize(basePrice, "5"),
+          unitPrice: basePrice,
           qty: 1,
         });
       }}
