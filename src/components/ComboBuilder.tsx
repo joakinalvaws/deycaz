@@ -322,9 +322,10 @@ export function ComboBuilder({
                 <button
                   type="button"
                   onClick={() => setMobileSummaryOpen(true)}
-                  className="fixed right-5 bottom-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-foreground text-2xl text-white shadow-lg"
+                  className="fixed right-5 bottom-5 z-40 flex h-14 items-center gap-2 rounded-full bg-[#e8e6e1] px-5 text-foreground shadow-lg"
                 >
-                  🛒
+                  <span className="text-2xl">🛒</span>
+                  <span className="text-sm font-bold">S/. {formatPEN(total)}</span>
                   {count > 0 && (
                     <span className="bg-success absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold text-white">
                       {count}

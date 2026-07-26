@@ -79,11 +79,11 @@ export default async function HomePage() {
 
       <Marquee />
 
-      <section className="mx-auto max-w-[1400px] px-6 py-16 md:px-10 md:py-24">
+      <section className="mx-auto max-w-[1400px] px-6 pt-8 pb-16 md:px-10 md:pt-12 md:pb-24">
         {bestSellers.length > 0 && (
           <ProductRail>
             {bestSellers.map((p, i) => (
-              <div key={p.id} className="w-[240px] flex-none snap-start md:w-[260px]">
+              <div key={p.id} className="w-[43%] flex-none snap-start sm:w-[240px] md:w-[260px]">
                 <ProductCard product={p} priority={i < 3} />
               </div>
             ))}

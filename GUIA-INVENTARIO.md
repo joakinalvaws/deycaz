@@ -144,11 +144,14 @@ Atajo más cómodo — en el **SQL Editor**, pega y corre:
 
 ```sql
 select order_number, created_at, customer_name, customer_phone,
-       shipping_method, total, status
+       shipping_method, subtotal, discount, total, status
 from orders
 order by created_at desc
 limit 50;
 ```
+
+(`discount` es el descuento por combo aplicado a ese pedido en soles — antes
+siempre aparecía en 0, ahora sí refleja el monto real descontado.)
 
 Y para ver los productos de un pedido puntual (cambia el número):
 
