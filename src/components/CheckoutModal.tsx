@@ -29,28 +29,34 @@ function buildWhatsAppMessage(params: {
   provincia: string;
   shalomAgency: string;
 }) {
+  // Nota: los emoji "a color" (📦 👤 💰 etc.) llegan como "�" en WhatsApp —
+  // es un bug confirmado del lado de wa.me/api.whatsapp.com, que corrompe
+  // cualquier carácter de la lista oficial Emoji=Yes de Unicode al armar el
+  // link de click-to-chat (se ve en el propio redirect de wa.me, antes de
+  // que el link llegue al teléfono). Los símbolos de abajo (▸ ✆ ✓ — # ·) no
+  // están en esa lista y sí se transmiten bien.
   const lines = [
-    "Hola 👋 quiero confirmar mi pedido en DEYCAZ",
+    "Hola, quiero confirmar mi pedido en DEYCAZ",
     "",
-    `📦 Pedido: ${params.orderNumber}`,
-    `👤 Nombre: ${params.nombre}`,
-    `🆔 DNI: ${params.dni || "-"}`,
-    `📱 WhatsApp: ${params.celular}`,
+    `# Pedido: ${params.orderNumber}`,
+    `▸ Nombre: ${params.nombre}`,
+    `▸ DNI: ${params.dni || "-"}`,
+    `✆ WhatsApp: ${params.celular}`,
     "",
-    "🛒 Productos:",
-    ...params.items.map((i) => `- ${i.qty}x ${i.name} (${i.size}ml)`),
+    "▸ Productos:",
+    ...params.items.map((i) => `  · ${i.qty}x ${i.name} (${i.size}ml)`),
     "",
-    `💰 Total a pagar: S/. ${formatPEN(params.total)}`,
-    `🚚 Método de envío: ${params.shippingMethod === "lima_delivery" ? "DELIVERY (LIMA)" : "SHALOM (PROVINCIA)"}`,
-    `📍 Dirección: ${params.direccion}, ${params.distrito}, ${params.provincia}, Perú`,
+    `▸ Total a pagar: S/. ${formatPEN(params.total)}`,
+    `▸ Método de envío: ${params.shippingMethod === "lima_delivery" ? "DELIVERY (LIMA)" : "SHALOM (PROVINCIA)"}`,
+    `▸ Dirección: ${params.direccion}, ${params.distrito}, ${params.provincia}, Perú`,
   ];
   if (params.shippingMethod === "shalom_provincia") {
-    lines.push(`🏬 Agencia Shalom: ${params.shalomAgency}`);
+    lines.push(`▸ Agencia Shalom: ${params.shalomAgency}`);
   }
   lines.push(
     "",
-    "✅ Confirmo que mis datos y dirección son correctos",
-    "✅ Confirmo que recibiré y pagaré el pedido contra entrega",
+    "✓ Confirmo que mis datos y dirección son correctos",
+    "✓ Confirmo que recibiré y pagaré el pedido contra entrega",
   );
   return lines.join("\n");
 }
