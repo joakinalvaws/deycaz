@@ -1,11 +1,12 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getBestSellers, getCategories, getTestimonials } from "@/lib/data";
 import { ProductCard } from "@/components/ProductCard";
-import { ProductImage } from "@/components/ProductImage";
 import { ProductRail } from "@/components/ProductRail";
 import { Testimonials } from "@/components/Testimonials";
 import { CategoryTile } from "@/components/CategoryTile";
 import { Marquee } from "@/components/Marquee";
+import heroMasVendido from "@/assets/hero-mas-vendido.webp";
 
 export default async function HomePage() {
   const [bestSellers, categories, testimonials] = await Promise.all([
@@ -17,13 +18,22 @@ export default async function HomePage() {
   return (
     <>
       {/* El texto/precio promocional va integrado en la imagen publicitaria
-          que se suba acá (banner diseñado aparte) — por eso esta sección ya
-          no renderiza título/precio, solo la imagen y el botón. */}
+          (banner diseñado aparte) — por eso esta sección ya no renderiza
+          título/precio, solo la imagen y el botón. El contenedor usa el
+          aspect-ratio real del banner (1920x700) para que la imagen llene
+          el ancho completo sin recortes ni huecos a ningún tamaño. */}
       <section
-        className="relative h-[500px] w-full md:h-[660px]"
+        className="relative aspect-[1920/700] w-full"
         style={{ marginTop: "calc(-1 * var(--header-h))" }}
       >
-        <ProductImage src={null} alt="Imagen publicitaria" sizes="100vw" priority />
+        <Image
+          src={heroMasVendido}
+          alt="El más vendido"
+          fill
+          sizes="100vw"
+          priority
+          className="object-cover"
+        />
         <div className="absolute right-6 bottom-9 md:right-10">
           <Link
             href="/combo"

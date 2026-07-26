@@ -22,6 +22,7 @@ export function Header({ products }: { products: Product[] }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [atTop, setAtTop] = useState(true);
+  const [hidden, setHidden] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
 
   const results = useMemo(() => {
@@ -44,13 +45,27 @@ export function Header({ products }: { products: Product[] }) {
     return () => window.removeEventListener("resize", updateHeight);
   }, []);
 
-  // El header siempre está visible (fixed) — solo cambia de transparente a
-  // fondo blanco según si estás arriba del todo o no. Sin animación ni
-  // ocultamiento al hacer scroll.
+  // Arriba del todo: transparente y visible. Al bajar: se oculta apenas sale
+  // de la vista. Al subir: reaparece con fondo blanco. Sin transición/
+  // animación — el cambio es instantáneo (así se evita el efecto raro que
+  // daba el slide animado).
   useEffect(() => {
+    let lastY = window.scrollY;
+
     function onScroll() {
-      setAtTop(window.scrollY < 8);
+      const y = window.scrollY;
+      const nowAtTop = y < 8;
+      setAtTop(nowAtTop);
+      if (nowAtTop) {
+        setHidden(false);
+      } else if (y > lastY) {
+        setHidden(true); // bajando
+      } else if (y < lastY) {
+        setHidden(false); // subiendo
+      }
+      lastY = y;
     }
+
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -65,7 +80,7 @@ export function Header({ products }: { products: Product[] }) {
   return (
     <header
       ref={headerRef}
-      className={`fixed inset-x-0 top-0 z-100 border-b ${
+      className={`fixed inset-x-0 top-0 z-100 border-b ${hidden ? "-translate-y-full" : "translate-y-0"} ${
         atTop ? "border-transparent bg-transparent" : "border-border bg-white shadow-[0_1px_0_rgba(0,0,0,0.04)]"
       }`}
     >
@@ -106,7 +121,7 @@ export function Header({ products }: { products: Product[] }) {
               type="button"
               aria-label="Buscar"
               onClick={() => setSearchOpen((v) => !v)}
-              className="bg-transparent text-xl text-foreground"
+              className="bg-transparent text-2xl text-foreground"
             >
               ⌕
             </button>
@@ -131,9 +146,9 @@ export function Header({ products }: { products: Product[] }) {
             )}
           </div>
 
-          <button type="button" aria-label="Carrito" onClick={toggleCart} className="relative bg-transparent text-xl text-foreground">
+          <button type="button" aria-label="Carrito" onClick={toggleCart} className="relative bg-transparent text-2xl text-foreground">
             ⛃
-            <span className="absolute -top-2 -right-2.5 flex h-[17px] w-[17px] items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-white">
+            <span className="absolute -top-2 -right-2.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-white">
               {count}
             </span>
           </button>
