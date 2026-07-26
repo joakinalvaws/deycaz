@@ -35,7 +35,7 @@ insert into products (name, category_slug, price, original_price, badge, best_se
 on conflict do nothing;
 
 insert into testimonials (name, stars, text, sort_order) values
-  ('Camila R.', 5, 'Excelente calidad, se siente igual al original. Llegó en 2 días.', 1),
+  ('Camila R.', 5, 'Excelente calidad, 100% original. Llegó en 2 días.', 1),
   ('Jorge M.',  5, 'Compré el combo y ahorré bastante. Muy recomendado.', 2),
   ('Andrea T.', 5, 'Atención rápida por WhatsApp y el perfume dura todo el día.', 3),
   ('Diego P.',  4, 'Segunda vez que compro, siempre llega bien empacado.', 4)
