@@ -54,8 +54,19 @@ export function CheckoutModal() {
     const order = getOrderedFieldKeys(method);
     const nextKey = order[order.indexOf(currentKey) + 1];
     const el = nextKey ? fieldRefs.current[nextKey] : null;
-    el?.focus();
-    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    // Enfocar un <select> por JS no abre su picker nativo en mobile, así que
+    // el avance automático nunca sirve de mucho ahí — se deja que el usuario
+    // lo toque él mismo, y el avance sigue funcionando entre campos de texto.
+    if (!el || el.tagName === "SELECT") return;
+    el.focus();
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  // El teclado virtual del celular puede tapar el campo recién enfocado (el
+  // modal es `fixed` + centrado, no repagina solo). Se espera a que termine
+  // de abrirse (~300ms) y se lo vuelve a traer a la vista.
+  function scrollFieldIntoView(el: HTMLElement | null) {
+    if (!el) return;
+    setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
   }
 
   const [shippingMethod, setShippingMethod] = useState<ShippingMethod | null>(null);
@@ -335,7 +346,9 @@ export function CheckoutModal() {
                     focusNext("nombre", shippingMethod);
                   }
                 }}
+                onFocus={(e) => scrollFieldIntoView(e.target)}
                 placeholder="Nombre completo"
+                maxLength={50}
                 className="border border-border-strong px-3.5 py-3 text-sm outline-none"
               />
               <input
@@ -348,6 +361,7 @@ export function CheckoutModal() {
                   setCelular(digits);
                   if (digits.length === 9) focusNext("celular", shippingMethod);
                 }}
+                onFocus={(e) => scrollFieldIntoView(e.target)}
                 placeholder="Celular con WhatsApp"
                 type="tel"
                 inputMode="numeric"
@@ -366,6 +380,7 @@ export function CheckoutModal() {
                     setDni(digits);
                     if (digits.length === 8) focusNext("dni", shippingMethod);
                   }}
+                  onFocus={(e) => scrollFieldIntoView(e.target)}
                   placeholder="DNI"
                   type="text"
                   inputMode="numeric"
@@ -466,8 +481,10 @@ export function CheckoutModal() {
                     focusNext("direccion", shippingMethod);
                   }
                 }}
+                onFocus={(e) => scrollFieldIntoView(e.target)}
                 placeholder="Dirección completa"
                 rows={2}
+                maxLength={100}
                 className="resize-vertical border border-border-strong px-3.5 py-3 text-sm outline-none"
               />
 
@@ -484,6 +501,7 @@ export function CheckoutModal() {
                       (e.target as HTMLInputElement).blur();
                     }
                   }}
+                  onFocus={(e) => scrollFieldIntoView(e.target)}
                   placeholder="Agencia Shalom (provincia)"
                   className="border border-border-strong px-3.5 py-3 text-sm outline-none"
                 />

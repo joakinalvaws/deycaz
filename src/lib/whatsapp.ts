@@ -54,11 +54,12 @@ export function buildOrderWhatsAppMessage(params: WhatsAppOrderMessageParams): s
 }
 
 /**
- * Arma la URL final de wa.me. Un solo `encodeURIComponent` sobre el mensaje
- * completo (sin escapar espacios/saltos de línea a mano, sin doble encoding,
- * nunca `decodeURIComponent`) — el resultado es equivalente a
- * `https://wa.me/{phone}?text=${encodeURIComponent(message)}`.
+ * Arma la URL final de WhatsApp. Se probó `wa.me` en dispositivos reales y no
+ * funcionó bien — `api.whatsapp.com/send/` es el formato confirmado que sí
+ * funciona, así que es el que se usa acá. Un solo `encodeURIComponent` sobre
+ * el mensaje completo (sin escapar espacios/saltos de línea a mano, sin doble
+ * encoding, nunca `decodeURIComponent`).
  */
 export function buildWhatsAppUrl(phone: string, message: string): string {
-  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  return `https://api.whatsapp.com/send/?phone=${phone}&text=${encodeURIComponent(message)}&type=phone_number&app_absent=0`;
 }

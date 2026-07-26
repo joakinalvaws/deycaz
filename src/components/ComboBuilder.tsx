@@ -14,6 +14,93 @@ import { FreeShippingSummary } from "./FreeShippingSummary";
 // scrollear, así que el salto automático solo tiene sentido en mobile.
 const DESKTOP_BREAKPOINT = 1024;
 
+/** Contenido del resumen "TU COMBO" — se muestra tal cual en el panel lateral
+ * de desktop y dentro de la hoja inferior de mobile, para no duplicar la
+ * lógica/JSX entre las dos presentaciones. */
+function ComboSummaryPanel({
+  count,
+  subtotal,
+  discount,
+  total,
+  projectedSubtotal,
+  selectedProducts,
+  onRemove,
+  onConfirm,
+  ready,
+  onClose,
+}: {
+  count: number;
+  subtotal: number;
+  discount: number;
+  total: number;
+  projectedSubtotal: number;
+  selectedProducts: Product[];
+  onRemove: (id: number) => void;
+  onConfirm: () => void;
+  ready: boolean;
+  onClose?: () => void;
+}) {
+  return (
+    <>
+      <div className="flex justify-between border-b border-[#2a2a28] px-5 py-4">
+        <span className="text-xs font-bold tracking-wide">TU COMBO</span>
+        <div className="flex items-center gap-3">
+          <span className="text-muted-2 text-xs">{count} items</span>
+          {onClose && (
+            <button type="button" onClick={onClose} className="-m-1 bg-transparent p-1 text-sm">
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="flex flex-col gap-3 border-b border-[#f0efec] bg-white px-5 py-4 text-foreground">
+        <BundleDiscountSummary comboQty={count} />
+        <FreeShippingSummary discountedSubtotal={projectedSubtotal} shippingMethod={null} />
+      </div>
+      <div className="min-h-20 bg-white px-5 py-4.5 text-foreground">
+        <div className="text-muted-2 mb-2.5 text-[11px] font-bold tracking-wide">PERFUMES SELECCIONADOS</div>
+        {selectedProducts.length === 0 && (
+          <p className="text-muted-2 my-5 text-center text-[13px] italic">Ningún perfume seleccionado aún</p>
+        )}
+        {selectedProducts.map((p) => (
+          <div key={p.id} className="flex items-center justify-between border-b border-[#f0efec] py-2 text-[13px]">
+            <span>{p.name}</span>
+            <button type="button" onClick={() => onRemove(p.id)} className="text-muted-2 bg-transparent text-[15px]">
+              ✕
+            </button>
+          </div>
+        ))}
+        <div className="text-muted mt-4 flex justify-between text-[13px]">
+          <span>Precio sin descuento</span>
+          <span>S/. {formatPEN(subtotal)}</span>
+        </div>
+        {discount > 0 && (
+          <div className="mt-1.5 flex justify-between text-[13px] text-success">
+            <span>Descuento</span>
+            <span>-S/. {formatPEN(discount)}</span>
+          </div>
+        )}
+      </div>
+      <div className="flex items-center justify-between px-5 py-4.5">
+        <span className="text-xs font-bold tracking-wide">TOTAL A PAGAR</span>
+        <span className="text-xl font-extrabold">S/. {formatPEN(total)}</span>
+      </div>
+      <div className="px-5 pb-5">
+        <button
+          type="button"
+          disabled={!ready}
+          onClick={onConfirm}
+          className={`w-full py-4 text-[13px] font-bold tracking-wide ${
+            ready ? "bg-success text-white" : "cursor-not-allowed bg-border-strong text-muted-2"
+          }`}
+        >
+          CONFIRMAR COMBO
+        </button>
+      </div>
+    </>
+  );
+}
+
 export function ComboBuilder({
   categories,
   products,
@@ -25,6 +112,7 @@ export function ComboBuilder({
   const [size, setSize] = useState<Size | null>(null);
   const [selected, setSelected] = useState<number[]>([]);
   const [search, setSearch] = useState("");
+  const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
   const { addItems, openCheckout, discountedSubtotal } = useCart();
 
   const comboCategories = categories.filter((c) => c.slug !== "promos");
@@ -216,66 +304,59 @@ export function ComboBuilder({
                 </div>
               </div>
 
-              <div className="h-fit bg-foreground text-white">
-                <div className="flex justify-between border-b border-[#2a2a28] px-5 py-4">
-                  <span className="text-xs font-bold tracking-wide">TU COMBO</span>
-                  <span className="text-muted-2 text-xs">{count} items</span>
-                </div>
-                <div className="flex flex-col gap-3 border-b border-[#f0efec] bg-white px-5 py-4 text-foreground">
-                  <BundleDiscountSummary comboQty={count} />
-                  <FreeShippingSummary discountedSubtotal={projectedSubtotal} shippingMethod={null} />
-                </div>
-                <div className="min-h-20 bg-white px-5 py-4.5 text-foreground">
-                  <div className="text-muted-2 mb-2.5 text-[11px] font-bold tracking-wide">
-                    PERFUMES SELECCIONADOS
-                  </div>
-                  {selectedProducts.length === 0 && (
-                    <p className="text-muted-2 my-5 text-center text-[13px] italic">
-                      Ningún perfume seleccionado aún
-                    </p>
+              <div className="hidden h-fit bg-foreground text-white lg:block">
+                <ComboSummaryPanel
+                  count={count}
+                  subtotal={subtotal}
+                  discount={discount}
+                  total={total}
+                  projectedSubtotal={projectedSubtotal}
+                  selectedProducts={selectedProducts}
+                  onRemove={toggleProduct}
+                  onConfirm={confirmCombo}
+                  ready={ready}
+                />
+              </div>
+
+              <div className="lg:hidden">
+                <button
+                  type="button"
+                  onClick={() => setMobileSummaryOpen(true)}
+                  className="fixed right-5 bottom-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-foreground text-2xl text-white shadow-lg"
+                >
+                  🛒
+                  {count > 0 && (
+                    <span className="bg-success absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold text-white">
+                      {count}
+                    </span>
                   )}
-                  {selectedProducts.map((p) => (
+                </button>
+
+                {mobileSummaryOpen && (
+                  <>
                     <div
-                      key={p.id}
-                      className="flex items-center justify-between border-b border-[#f0efec] py-2 text-[13px]"
-                    >
-                      <span>{p.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => toggleProduct(p.id)}
-                        className="text-muted-2 bg-transparent text-[15px]"
-                      >
-                        ✕
-                      </button>
+                      onClick={() => setMobileSummaryOpen(false)}
+                      className="fixed inset-0 z-170 bg-black/40"
+                    />
+                    <div className="fixed inset-x-0 bottom-0 z-171 max-h-[85vh] overflow-auto rounded-t-2xl bg-foreground text-white">
+                      <ComboSummaryPanel
+                        count={count}
+                        subtotal={subtotal}
+                        discount={discount}
+                        total={total}
+                        projectedSubtotal={projectedSubtotal}
+                        selectedProducts={selectedProducts}
+                        onRemove={toggleProduct}
+                        onConfirm={() => {
+                          setMobileSummaryOpen(false);
+                          confirmCombo();
+                        }}
+                        ready={ready}
+                        onClose={() => setMobileSummaryOpen(false)}
+                      />
                     </div>
-                  ))}
-                  <div className="text-muted mt-4 flex justify-between text-[13px]">
-                    <span>Precio sin descuento</span>
-                    <span>S/. {formatPEN(subtotal)}</span>
-                  </div>
-                  {discount > 0 && (
-                    <div className="mt-1.5 flex justify-between text-[13px] text-success">
-                      <span>Descuento</span>
-                      <span>-S/. {formatPEN(discount)}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center justify-between px-5 py-4.5">
-                  <span className="text-xs font-bold tracking-wide">TOTAL A PAGAR</span>
-                  <span className="text-xl font-extrabold">S/. {formatPEN(total)}</span>
-                </div>
-                <div className="px-5 pb-5">
-                  <button
-                    type="button"
-                    disabled={!ready}
-                    onClick={confirmCombo}
-                    className={`w-full py-4 text-[13px] font-bold tracking-wide ${
-                      ready ? "bg-success text-white" : "cursor-not-allowed bg-border-strong text-muted-2"
-                    }`}
-                  >
-                    CONFIRMAR COMBO
-                  </button>
-                </div>
+                  </>
+                )}
               </div>
             </div>
           )}
