@@ -1,6 +1,6 @@
 export type ShippingMethod = "lima_delivery" | "shalom_provincia";
 
-export const FREE_SHIPPING_THRESHOLD = 200;
+export const FREE_SHIPPING_THRESHOLD = 250;
 export const LIMA_DELIVERY_FLAT_FEE = 15;
 
 /** Estimado para mostrar en el modal — el cálculo autoritativo (el que de

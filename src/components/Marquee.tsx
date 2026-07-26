@@ -1,4 +1,4 @@
-const MESSAGE = "ENVÍOS A TODO EL PERÚ  |  DELIVERY GRATIS + S/. 200";
+const MESSAGE = "ENVÍOS A TODO EL PERÚ  |  DELIVERY GRATIS + S/. 250";
 
 export function Marquee() {
   return (

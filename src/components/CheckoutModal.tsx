@@ -230,6 +230,12 @@ export function CheckoutModal() {
                   <div className="mb-2 flex items-center justify-between text-xs font-bold">
                     <span>🎁 Tu Combo · {comboQty} decants</span>
                   </div>
+                  <div className="mb-2.5 border-b border-border-strong pb-2.5">
+                    <BundleDiscountSummary
+                      comboQty={comboQty}
+                      maxTierMessage="🏆 Ya obtuviste el mayor descuento disponible."
+                    />
+                  </div>
                   <div className="flex flex-col gap-1.5">
                     {comboItems.map((item, i) => (
                       <div key={`combo-${i}`} className="flex justify-between text-[13px]">
@@ -243,12 +249,6 @@ export function CheckoutModal() {
                   <div className="mt-2 flex justify-between border-t border-border-strong pt-2 text-[13px] font-bold">
                     <span>Subtotal combo</span>
                     <span>S/. {formatPEN(comboSubtotal)}</span>
-                  </div>
-                  <div className="mt-2.5 border-t border-border-strong pt-2.5">
-                    <BundleDiscountSummary
-                      comboQty={comboQty}
-                      maxTierMessage="🏆 Ya obtuviste el mayor descuento disponible."
-                    />
                   </div>
                 </div>
               )}

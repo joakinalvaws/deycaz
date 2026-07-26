@@ -147,7 +147,7 @@ create policy "contact_messages_public_insert" on contact_messages
 --     soles (mantener sincronizado con BUNDLE_DISCOUNT_TIERS en
 --     src/lib/bundleDiscount.ts): 1→S/.0, 2→S/.10, 3→S/.20, 4→S/.35,
 --     5→S/.45, 6+→S/.50 (nunca se acumulan niveles).
---   - Envío: 'lima_delivery' gratis desde S/.200 de subtotal con descuento
+--   - Envío: 'lima_delivery' gratis desde S/.250 de subtotal con descuento
 --     ya aplicado, si no S/.15.
 --     'shalom_provincia' siempre S/.0 para la tienda — el cliente paga el
 --     flete directamente en la agencia Shalom al recoger su pedido.
@@ -264,7 +264,7 @@ begin
   v_subtotal_after_discount := greatest(v_subtotal - v_bundle_discount, 0);
 
   if p_shipping_method = 'lima_delivery' then
-    v_shipping_cost := case when v_subtotal_after_discount >= 200 then 0 else 15 end;
+    v_shipping_cost := case when v_subtotal_after_discount >= 250 then 0 else 15 end;
   else
     v_shipping_cost := 0;
   end if;

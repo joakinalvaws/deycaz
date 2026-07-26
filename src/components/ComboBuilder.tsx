@@ -7,6 +7,12 @@ import { getBundleDiscount } from "@/lib/bundleDiscount";
 import type { Category, Product } from "@/lib/types";
 import { ProductImage } from "./ProductImage";
 import { BundleDiscountSummary } from "./BundleDiscountSummary";
+import { FreeShippingSummary } from "./FreeShippingSummary";
+
+// Debe coincidir con el breakpoint `lg` de Tailwind (usado más abajo en
+// `lg:grid-cols-[1fr_340px]`) — en desktop la zona TAMAÑO ya es visible sin
+// scrollear, así que el salto automático solo tiene sentido en mobile.
+const DESKTOP_BREAKPOINT = 1024;
 
 export function ComboBuilder({
   categories,
@@ -19,7 +25,7 @@ export function ComboBuilder({
   const [size, setSize] = useState<Size | null>(null);
   const [selected, setSelected] = useState<number[]>([]);
   const [search, setSearch] = useState("");
-  const { addItems, openCheckout } = useCart();
+  const { addItems, openCheckout, discountedSubtotal } = useCart();
 
   const comboCategories = categories.filter((c) => c.slug !== "promos");
 
@@ -41,12 +47,22 @@ export function ComboBuilder({
   const discount = getBundleDiscount(count);
   const total = subtotal - discount;
   const ready = count >= 2 && !!size;
+  // Proyección de "cuánto me faltaría para envío gratis" si confirmo este
+  // combo tal cual está — se suma a lo que ya hay en el carrito en vez de
+  // mostrar solo el total de esta selección en curso, para no confundir a
+  // alguien que ya tenía productos agregados antes de entrar acá.
+  const projectedSubtotal = discountedSubtotal + total;
 
   const sizeZoneRef = useRef<HTMLDivElement>(null);
   const perfumesZoneRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (category) sizeZoneRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (!category) return;
+    // En desktop la zona TAMAÑO ya se ve sin necesidad de scroll, y el salto
+    // automático se sentía brusco — el scroll automático queda solo para
+    // mobile, donde sí hace falta para notar que se desbloqueó contenido.
+    if (window.innerWidth >= DESKTOP_BREAKPOINT) return;
+    sizeZoneRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [category]);
 
   useEffect(() => {
@@ -205,6 +221,10 @@ export function ComboBuilder({
                   <span className="text-xs font-bold tracking-wide">TU COMBO</span>
                   <span className="text-muted-2 text-xs">{count} items</span>
                 </div>
+                <div className="flex flex-col gap-3 border-b border-[#f0efec] bg-white px-5 py-4 text-foreground">
+                  <BundleDiscountSummary comboQty={count} />
+                  <FreeShippingSummary discountedSubtotal={projectedSubtotal} shippingMethod={null} />
+                </div>
                 <div className="min-h-20 bg-white px-5 py-4.5 text-foreground">
                   <div className="text-muted-2 mb-2.5 text-[11px] font-bold tracking-wide">
                     PERFUMES SELECCIONADOS
@@ -239,9 +259,6 @@ export function ComboBuilder({
                       <span>-S/. {formatPEN(discount)}</span>
                     </div>
                   )}
-                  <div className="mt-3.5 border-t border-[#f0efec] pt-3.5">
-                    <BundleDiscountSummary comboQty={count} />
-                  </div>
                 </div>
                 <div className="flex items-center justify-between px-5 py-4.5">
                   <span className="text-xs font-bold tracking-wide">TOTAL A PAGAR</span>
