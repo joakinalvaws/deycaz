@@ -6,6 +6,7 @@ import { ProductRail } from "@/components/ProductRail";
 import { Testimonials } from "@/components/Testimonials";
 import { CategoryTile } from "@/components/CategoryTile";
 import { Marquee } from "@/components/Marquee";
+import { TikTokEmbed } from "@/components/TikTokEmbed";
 import heroMasVendido from "@/assets/hero-mas-vendido.webp";
 
 export const revalidate = 300;
@@ -117,36 +118,30 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="px-6 pt-16 pb-16 md:px-10 md:pt-24 md:pb-20">
-        <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-8 md:grid-cols-[340px_1fr] md:gap-12">
-          <div className="aspect-9/16 w-full bg-cream" />
+      <section className="bg-cream px-6 pt-16 pb-16 md:px-10 md:pt-24 md:pb-20">
+        <div className="mx-auto flex max-w-[1400px] flex-col gap-10 md:flex-row md:items-center md:gap-12">
+          <div className="flex justify-center md:w-[340px] md:flex-none">
+            <TikTokEmbed
+              url="https://www.tiktok.com/@deycaz.pe/video/7662928335361625365"
+              videoId="7662928335361625365"
+            />
+          </div>
           <div className="flex flex-col justify-center">
-            <h2 className="mb-4 text-2xl font-bold">Como en video, así de real</h2>
-            <div className="mb-5 flex gap-4">
-              <div className="h-14 w-14 flex-none rounded-full bg-cream" />
-              <div>
-                <div className="text-[15px] font-bold">@deycaz.pe</div>
-                <div className="my-1 text-sm tracking-widest">★★★★★</div>
-                <p className="text-muted max-w-[440px] text-sm leading-relaxed">
-                  &ldquo;Pedí un decant para probar antes de comprar el frasco completo y quedé
-                  fascinada. Llegó rapidísimo y bien embalado.&rdquo;
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 gap-5 border-t border-border pt-6 sm:grid-cols-3">
-              <div>
-                <div className="text-[15px] font-extrabold">100% ORIGINALES</div>
-                <div className="text-muted mt-1 text-xs">Decants verificados</div>
-              </div>
-              <div>
-                <div className="text-[15px] font-extrabold">ENVÍO 24-48H</div>
-                <div className="text-muted mt-1 text-xs">A todo el Perú</div>
-              </div>
-              <div>
-                <div className="text-[15px] font-extrabold">PAGO CONTRA ENTREGA</div>
-                <div className="text-muted mt-1 text-xs">Sin adelantos</div>
-              </div>
-            </div>
+            <h1 className="mb-5 text-3xl leading-tight font-bold md:text-4xl lg:text-[40px]">
+              Como en video, así de real
+            </h1>
+            <p className="text-muted mb-4 max-w-[520px] text-sm leading-relaxed md:text-base">
+              En nuestro TikTok mostramos cada pedido tal cual sale de nuestras manos: perfumes
+              decantados desde el frasco original, sellados y listos para viajar a cualquier
+              rincón del Perú.
+            </p>
+            <p className="text-muted mb-4 max-w-[520px] text-sm leading-relaxed md:text-base">
+              Nada de fotos de catálogo — así se ve, se siente y se envía un DEYCAZ real, del
+              mismo frasco que vas a recibir tú.
+            </p>
+            <p className="text-muted max-w-[520px] text-sm leading-relaxed md:text-base">
+              Síguenos en @deycaz.pe para ver las próximas novedades antes que nadie.
+            </p>
           </div>
         </div>
       </section>
