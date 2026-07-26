@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/context/CartContext";
-import type { Product } from "@/lib/types";
+import type { Category, Product } from "@/lib/types";
 import { formatPEN } from "@/lib/pricing";
 
 const NAV = [
@@ -15,15 +15,23 @@ const NAV = [
   { href: "/contacto", label: "CONTACTO" },
 ];
 
-export function Header({ products }: { products: Product[] }) {
+function catalogLabel(c: Category) {
+  if (c.slug === "disenador") return "Perfumes de Diseñador";
+  if (c.slug === "damas") return "Perfumes para Damas";
+  return `Perfumes ${c.name}`;
+}
+
+export function Header({ products, categories }: { products: Product[]; categories: Category[] }) {
   const pathname = usePathname();
   const router = useRouter();
   const { count, toggleCart } = useCart();
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [catalogOpen, setCatalogOpen] = useState(false);
   const [atTop, setAtTop] = useState(true);
   const [hidden, setHidden] = useState(false);
+  const catalogCategories = categories.filter((c) => c.slug !== "promos");
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -121,15 +129,22 @@ export function Header({ products }: { products: Product[] }) {
     </>
   );
 
+  // Un solo bloque de clases de fondo/borde por estado — nunca se emiten
+  // bg-white y bg-transparent (u otro par en conflicto) a la vez, porque
+  // ahí gana el orden de la hoja de estilos generada por Tailwind, no el
+  // orden en el className, y eso dejaba el header sin transparentar de
+  // verdad arriba del todo.
+  const chrome = atTop
+    ? "border-transparent bg-transparent shadow-none"
+    : "border-b border-border bg-white shadow-[0_1px_0_rgba(0,0,0,0.04)]";
+
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-100 border-b border-border bg-white shadow-[0_1px_0_rgba(0,0,0,0.04)] ${
-          hidden ? "-translate-y-full" : "translate-y-0"
-        } ${atTop ? "border-transparent bg-transparent shadow-none" : ""}`}
+        className={`fixed inset-x-0 top-0 z-100 ${chrome} ${hidden ? "-translate-y-full" : "translate-y-0"}`}
       >
         {/* Fila mobile: hamburguesa / logo centrado / buscar+carrito */}
-        <div className="grid grid-cols-3 items-center px-6 py-4 lg:hidden">
+        <div className="grid grid-cols-3 items-center px-6 pt-4 pb-2 lg:hidden">
           <button
             type="button"
             aria-label="Abrir menú"
@@ -143,6 +158,25 @@ export function Header({ products }: { products: Product[] }) {
           </Link>
           <div className="flex items-center gap-4 justify-self-end">{SearchAndCart}</div>
         </div>
+
+        {/* Segunda fila mobile: los 5 apartados, centrados y en una sola
+            línea (fuente chica para que quepan todos sin scroll). */}
+        <nav className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 pb-3 lg:hidden">
+          {NAV.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`text-[10px] font-semibold tracking-wide whitespace-nowrap ${
+                  active ? "text-foreground" : "text-muted"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
 
         {/* Fila desktop: logo / nav / buscar+carrito */}
         <div className="mx-auto hidden max-w-[1400px] items-center justify-between gap-6 px-10 py-4 lg:flex">
@@ -185,16 +219,55 @@ export function Header({ products }: { products: Product[] }) {
             <nav className="flex flex-col gap-1 px-2 py-4">
               {NAV.map((item) => {
                 const active = isActive(item.href);
+                if (item.href !== "/catalogo") {
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`px-4 py-3 text-sm font-semibold tracking-wide ${
+                        active ? "bg-cream text-foreground" : "text-muted"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                }
                 return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`px-4 py-3 text-sm font-semibold tracking-wide ${
-                      active ? "bg-cream text-foreground" : "text-muted"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
+                  <div key={item.href}>
+                    <div className={`flex items-center justify-between ${active ? "bg-cream" : ""}`}>
+                      <Link
+                        href={item.href}
+                        className={`flex-1 px-4 py-3 text-sm font-semibold tracking-wide ${
+                          active ? "text-foreground" : "text-muted"
+                        }`}
+                      >
+                        {item.label}
+                      </Link>
+                      <button
+                        type="button"
+                        aria-label={catalogOpen ? "Ocultar secciones de catálogo" : "Ver secciones de catálogo"}
+                        onClick={() => setCatalogOpen((v) => !v)}
+                        className="-m-2 mr-2 bg-transparent p-2 text-muted"
+                      >
+                        <span className={`inline-block transition-transform ${catalogOpen ? "rotate-90" : ""}`}>›</span>
+                      </button>
+                    </div>
+                    {catalogOpen && (
+                      <div className="flex flex-col gap-0.5 pb-1">
+                        {catalogCategories.map((c) => (
+                          <Link
+                            key={c.slug}
+                            href={`/categoria/${c.slug}`}
+                            className={`px-8 py-2 text-[13px] font-medium ${
+                              pathname === `/categoria/${c.slug}` ? "text-foreground" : "text-muted"
+                            }`}
+                          >
+                            {catalogLabel(c)}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </nav>
