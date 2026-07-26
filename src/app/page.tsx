@@ -21,32 +21,30 @@ export default async function HomePage() {
     <>
       {/* El texto/precio promocional va integrado en la imagen publicitaria
           (banner diseñado aparte) — por eso esta sección ya no renderiza
-          título/precio, solo la imagen y el botón. En mobile el hero mide
-          ~40% del alto de pantalla (con recorte de imagen vía object-cover,
-          a pedido) en vez de seguir el aspect-ratio real del banner; en
-          escritorio sí se respeta el aspect-ratio 1920x700 sin recortes.
+          título/precio, solo la imagen y el botón. En mobile el hero usa un
+          alto en vh (con recorte de imagen vía object-cover, a pedido) en
+          vez de seguir el aspect-ratio real del banner; en escritorio sí se
+          respeta el aspect-ratio 1920x700 sin recortes.
           El contenido (badge+texto+botellas) ocupa del 23% al 78.5% del
-          ancho de la imagen (55.5%) — más ancho que lo que un móvil típico
-          en 40vh alcanza a mostrar (~42%, medido con un iPhone real de
-          414x896 → hero renderizado a 414x358px), así que SIEMPRE se
-          recorta algo. object-center recortaba el inicio del texto (precio,
-          badge) Y la 3ra botella a la vez — peor que priorizar. Con
-          object-position 40% horizontal se ve el texto/precio/oferta
-          COMPLETO (lo más importante para conversión) y se alcanza a ver
-          la 1ra botella entera + la 2da parcial. scale-[0.92] "aleja" la
-          imagen un poco (no la agranda) dejando aire a los lados — el
-          bg-[#c6c6c6] es el tono de la esquina de la imagen, para que el
-          margen que queda a la vista combine. -mt-24 en todos los tamaños:
-          el header es "fixed" siempre (ver Header.tsx) y flota transparente
-          encima de este hero. */}
-      <section className="relative -mt-24 h-[40vh] min-h-[260px] w-full bg-[#c6c6c6] lg:aspect-[1920/700] lg:h-auto lg:min-h-0">
+          ancho de la imagen (55.5%). A menor alto de contenedor, más ancho
+          de imagen entra en el recorte (menos zoom) — se bajó de 40vh a
+          35vh para mostrar más campo visual a los lados (medido con sharp:
+          40vh mostraba solo ~42% del ancho de la imagen, 35vh muestra
+          ~48%), sin agregar padding ni fondo artificial. object-center
+          recortaba el inicio del texto (precio, badge) Y la 3ra botella a
+          la vez — peor que priorizar. Con object-position 40% horizontal
+          se ve el texto/precio/oferta COMPLETO (lo más importante para
+          conversión) y las 2 primeras botellas. -mt-24 en todos los
+          tamaños: el header es "fixed" siempre (ver Header.tsx) y flota
+          transparente encima de este hero. */}
+      <section className="relative -mt-24 h-[35vh] min-h-[240px] w-full lg:aspect-[1920/700] lg:h-auto lg:min-h-0">
         <Image
           src={heroMasVendido}
           alt="El más vendido"
           fill
           sizes="100vw"
           priority
-          className="scale-[0.92] object-cover object-[40%_50%] lg:object-center"
+          className="object-cover object-[40%_50%] lg:object-center"
         />
         <div className="absolute right-6 bottom-9 md:right-10">
           <Link
