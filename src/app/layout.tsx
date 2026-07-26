@@ -74,12 +74,11 @@ export default async function RootLayout({
         />
         <CartProvider>
           <Header products={products} />
-          {/* padding-top reserva el espacio del header, que es "fixed" para
-              poder flotar transparente sobre el hero de inicio (que cancela
-              este padding con un margin-top negativo). */}
-          <main className="flex-1" style={{ paddingTop: "var(--header-h)" }}>
-            {children}
-          </main>
+          {/* lg:pt-24 reserva el espacio del header, que solo es "fixed" en
+              escritorio (para flotar transparente sobre el hero de inicio,
+              que cancela este padding con lg:-mt-24). En celular el header
+              es "sticky" y reserva su espacio solo — no hace falta padding. */}
+          <main className="flex-1 lg:pt-24">{children}</main>
           <Footer />
           <CartDrawer />
           <CheckoutModal />

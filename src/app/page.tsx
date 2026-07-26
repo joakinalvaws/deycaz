@@ -23,11 +23,13 @@ export default async function HomePage() {
           (banner diseñado aparte) — por eso esta sección ya no renderiza
           título/precio, solo la imagen y el botón. El contenedor usa el
           aspect-ratio real del banner (1920x700) para que la imagen llene
-          el ancho completo sin recortes ni huecos a ningún tamaño. */}
-      <section
-        className="relative aspect-[1920/700] w-full"
-        style={{ marginTop: "calc(-1 * var(--header-h))" }}
-      >
+          el ancho completo sin recortes ni huecos a ningún tamaño.
+          lg:-mt-24 solo en escritorio: ahí el header flota fijo encima del
+          hero (ver Header.tsx). En celular el banner (~140px de alto) es
+          más bajo que el propio header de 2 filas, así que superponerlos
+          tapaba el botón — en celular el hero va en flujo normal, debajo
+          del header sticky, sin recortarse. */}
+      <section className="relative aspect-[1920/700] w-full lg:-mt-24">
         <Image
           src={heroMasVendido}
           alt="El más vendido"

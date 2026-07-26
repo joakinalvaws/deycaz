@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import type { Product } from "@/lib/types";
 import { formatPEN } from "@/lib/pricing";
@@ -23,7 +23,6 @@ export function Header({ products }: { products: Product[] }) {
   const [query, setQuery] = useState("");
   const [atTop, setAtTop] = useState(true);
   const [hidden, setHidden] = useState(false);
-  const headerRef = useRef<HTMLElement>(null);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -31,24 +30,12 @@ export function Header({ products }: { products: Product[] }) {
     return products.filter((p) => p.name.toLowerCase().includes(q)).slice(0, 6);
   }, [query, products]);
 
-  // Publica la altura real del header en una variable CSS para que las
-  // páginas puedan reservar ese espacio (el header es "fixed" para poder
-  // flotar transparente sobre el hero).
-  useEffect(() => {
-    function updateHeight() {
-      if (headerRef.current) {
-        document.documentElement.style.setProperty("--header-h", `${headerRef.current.offsetHeight}px`);
-      }
-    }
-    updateHeight();
-    window.addEventListener("resize", updateHeight);
-    return () => window.removeEventListener("resize", updateHeight);
-  }, []);
-
-  // Arriba del todo: transparente y visible. Al bajar: se oculta apenas sale
-  // de la vista. Al subir: reaparece con fondo blanco. Sin transición/
-  // animación — el cambio es instantáneo (así se evita el efecto raro que
-  // daba el slide animado).
+  // El efecto "transparente flotando sobre el hero" solo aplica en
+  // escritorio (ver clases lg: abajo) — en celular el hero (banner real,
+  // ancho x alto ~2.7:1) mide menos que el propio header de 2 filas, así
+  // que superponerlos ahí tapaba el botón. En celular el header es
+  // "sticky" normal, siempre con fondo blanco, sin necesitar compensar
+  // espacio en ningún lado.
   useEffect(() => {
     let lastY = window.scrollY;
 
@@ -79,10 +66,9 @@ export function Header({ products }: { products: Product[] }) {
 
   return (
     <header
-      ref={headerRef}
-      className={`fixed inset-x-0 top-0 z-100 border-b ${hidden ? "-translate-y-full" : "translate-y-0"} ${
-        atTop ? "border-transparent bg-transparent" : "border-border bg-white shadow-[0_1px_0_rgba(0,0,0,0.04)]"
-      }`}
+      className={`sticky top-0 z-100 border-b border-border bg-white shadow-[0_1px_0_rgba(0,0,0,0.04)] lg:fixed lg:inset-x-0 ${
+        hidden ? "-translate-y-full" : "translate-y-0"
+      } ${atTop ? "lg:border-transparent lg:bg-transparent lg:shadow-none" : ""}`}
     >
       <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-6 px-6 py-4 md:px-10">
         <Link href="/" className="font-serif text-2xl font-bold tracking-[3px] text-foreground">
@@ -155,7 +141,7 @@ export function Header({ products }: { products: Product[] }) {
         </div>
       </div>
 
-      <nav className={`flex gap-6 overflow-x-auto border-t px-6 py-3 lg:hidden ${atTop ? "border-transparent" : "border-border"}`}>
+      <nav className="flex gap-6 overflow-x-auto border-t border-border px-6 py-3 lg:hidden">
         {NAV.map((item) => (
           <Link
             key={item.href}

@@ -15,10 +15,6 @@
 :root {
   --background: #ffffff;
   --foreground: #0a0a0a;
-  /* Altura real del header (fixed): Header.tsx la mide y la actualiza en
-   * cuanto monta. Este valor es solo el estimado inicial para el primer
-   * render (SSR / antes de que corra el JS). */
-  --header-h: 88px;
 }
 
 @theme inline {
