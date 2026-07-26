@@ -113,7 +113,7 @@ export function Header({ products }: { products: Product[] }) {
       </div>
 
       <button type="button" aria-label="Carrito" onClick={toggleCart} className="relative -m-2 bg-transparent p-2 text-2xl text-foreground">
-        ⛃
+        🛒
         <span className="absolute top-0 right-0 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-white">
           {count}
         </span>

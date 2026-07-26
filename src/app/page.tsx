@@ -33,17 +33,20 @@ export default async function HomePage() {
           badge) Y la 3ra botella a la vez — peor que priorizar. Con
           object-position 40% horizontal se ve el texto/precio/oferta
           COMPLETO (lo más importante para conversión) y se alcanza a ver
-          la 1ra botella entera + la 2da parcial. -mt-24 en todos los
-          tamaños: el header es "fixed" siempre (ver Header.tsx) y flota
-          transparente encima de este hero. */}
-      <section className="relative -mt-24 h-[40vh] min-h-[260px] w-full lg:aspect-[1920/700] lg:h-auto lg:min-h-0">
+          la 1ra botella entera + la 2da parcial. scale-[0.92] "aleja" la
+          imagen un poco (no la agranda) dejando aire a los lados — el
+          bg-[#c6c6c6] es el tono de la esquina de la imagen, para que el
+          margen que queda a la vista combine. -mt-24 en todos los tamaños:
+          el header es "fixed" siempre (ver Header.tsx) y flota transparente
+          encima de este hero. */}
+      <section className="relative -mt-24 h-[40vh] min-h-[260px] w-full bg-[#c6c6c6] lg:aspect-[1920/700] lg:h-auto lg:min-h-0">
         <Image
           src={heroMasVendido}
           alt="El más vendido"
           fill
           sizes="100vw"
           priority
-          className="object-cover object-[40%_50%] lg:object-center"
+          className="scale-[0.92] object-cover object-[40%_50%] lg:object-center"
         />
         <div className="absolute right-6 bottom-9 md:right-10">
           <Link
