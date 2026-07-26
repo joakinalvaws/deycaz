@@ -43,8 +43,9 @@ export default async function HomePage() {
             <span className="inline-flex items-center gap-2 rounded-full bg-[#00c164] px-4 py-1.5 text-xs font-bold text-foreground">
               ★ MÁS VENDIDO
             </span>
-            <h1 className="font-display mt-3 text-4xl leading-[0.9] text-foreground md:text-8xl">
-              ROMPE CUELLOS
+            <h1 className="font-display mt-3 text-6xl leading-[0.9] font-extrabold tracking-tight md:text-8xl">
+              <span className="block text-[#6b6b6b]">ROMPE</span>
+              <span className="block text-foreground">CUELLOS</span>
             </h1>
             <p className="mt-2 text-xs font-semibold text-muted md:text-base">
               Erba Pura | Valentino | Stronger With You
