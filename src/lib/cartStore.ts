@@ -1,7 +1,11 @@
 import type { CartItem } from "./types";
 import type { Size } from "./pricing";
 
-const STORAGE_KEY = "deycaz.cart.v1";
+// v2: los items de combo dejaron de guardar el unitPrice con el descuento ya
+// incrustado (ver bundleDiscount.ts) — un carrito v1 persistido tendría
+// precios ya descontados, y el nuevo cálculo de descuento a nivel de
+// subtotal se aplicaría encima, duplicándolo. Bump de key para descartarlos.
+const STORAGE_KEY = "deycaz.cart.v2";
 
 export type AddItemInput = {
   productId: number;

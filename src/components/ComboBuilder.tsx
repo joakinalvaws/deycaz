@@ -1,17 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "@/context/CartContext";
-import {
-  FLAT_COMBO_SIZE_PRICE,
-  SIZES,
-  comboDiscountRate,
-  comboUnitPrice,
-  formatPEN,
-  type Size,
-} from "@/lib/pricing";
+import { FLAT_COMBO_SIZE_PRICE, SIZES, formatPEN, type Size } from "@/lib/pricing";
+import { getBundleDiscount } from "@/lib/bundleDiscount";
 import type { Category, Product } from "@/lib/types";
 import { ProductImage } from "./ProductImage";
+import { BundleDiscountSummary } from "./BundleDiscountSummary";
 
 export function ComboBuilder({
   categories,
@@ -41,12 +36,22 @@ export function ComboBuilder({
     .filter((p): p is Product => !!p);
 
   const count = selected.length;
-  const rate = comboDiscountRate(count);
   const flatPrice = size ? FLAT_COMBO_SIZE_PRICE[size] : 0;
   const subtotal = count * flatPrice;
-  const discount = Math.round(subtotal * rate);
+  const discount = getBundleDiscount(count);
   const total = subtotal - discount;
   const ready = count >= 2 && !!size;
+
+  const sizeZoneRef = useRef<HTMLDivElement>(null);
+  const perfumesZoneRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (category) sizeZoneRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [category]);
+
+  useEffect(() => {
+    if (size) perfumesZoneRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [size]);
 
   function toggleProduct(id: number) {
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -61,7 +66,7 @@ export function ComboBuilder({
 
   function confirmCombo() {
     if (!ready || !size) return;
-    const unitPrice = comboUnitPrice(size, count);
+    const unitPrice = FLAT_COMBO_SIZE_PRICE[size];
     addItems(
       selectedProducts.map((p) => ({
         productId: p.id,
@@ -124,7 +129,7 @@ export function ComboBuilder({
           </div>
 
           {category && (
-            <div>
+            <div ref={sizeZoneRef} className="scroll-mt-4">
               <div className="text-muted-2 mb-4.5 border-b border-[#e2e0dc] pb-2.5 text-[11px] font-bold tracking-wide">
                 TAMAÑO
               </div>
@@ -157,7 +162,7 @@ export function ComboBuilder({
           </div>
 
           {category && size && (
-            <div className="grid grid-cols-1 gap-7 lg:grid-cols-[1fr_340px]">
+            <div ref={perfumesZoneRef} className="scroll-mt-4 grid grid-cols-1 gap-7 lg:grid-cols-[1fr_340px]">
               <div>
                 <input
                   value={search}
@@ -230,10 +235,13 @@ export function ComboBuilder({
                   </div>
                   {discount > 0 && (
                     <div className="mt-1.5 flex justify-between text-[13px] text-success">
-                      <span>Descuento ({Math.round(rate * 100)}%)</span>
+                      <span>Descuento</span>
                       <span>-S/. {formatPEN(discount)}</span>
                     </div>
                   )}
+                  <div className="mt-3.5 border-t border-[#f0efec] pt-3.5">
+                    <BundleDiscountSummary comboQty={count} />
+                  </div>
                 </div>
                 <div className="flex items-center justify-between px-5 py-4.5">
                   <span className="text-xs font-bold tracking-wide">TOTAL A PAGAR</span>

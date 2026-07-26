@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "@/context/CartContext";
-import { comboDiscountRate, formatPEN } from "@/lib/pricing";
+import { formatPEN } from "@/lib/pricing";
 import { estimateShippingCost, type ShippingMethod } from "@/lib/shipping";
 import {
   getProvincias,
@@ -14,56 +14,49 @@ import {
 } from "@/lib/ubigeo";
 import { WHATSAPP_NUMBER } from "@/lib/constants";
 import { placeOrder } from "@/app/actions";
-import type { CartItem } from "@/lib/types";
+import { buildOrderWhatsAppMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
+import { BundleDiscountSummary } from "./BundleDiscountSummary";
+import { FreeShippingSummary } from "./FreeShippingSummary";
 
-const SPRAYS_BY_SIZE: Record<string, number> = { "3": 50, "5": 85, "10": 170 };
+type FieldKey = "nombre" | "celular" | "dni" | "provincia" | "distrito" | "direccion" | "shalomAgency";
 
-function buildWhatsAppMessage(params: {
-  orderNumber: number;
-  nombre: string;
-  dni: string;
-  celular: string;
-  items: CartItem[];
-  total: number;
-  shippingMethod: ShippingMethod;
-  direccion: string;
-  distrito: string;
-  provincia: string;
-  shalomAgency: string;
-}) {
-  const lines = [
-    "Hola 👋 quiero confirmar mi pedido en DEYCAZ",
-    "",
-    `🧾 Pedido: ${params.orderNumber}`,
-    `👤 Nombre: ${params.nombre}`,
-    `🪪 DNI: ${params.dni || "-"}`,
-    `📱 WhatsApp: ${params.celular}`,
-    "",
-    ...params.items.flatMap((i) => [
-      `📦 Producto: ${i.name}`,
-      `🔢 Cantidad: ${i.qty} ${i.name} - ${i.size}ml / ${SPRAYS_BY_SIZE[i.size] ?? ""} sprays`,
-    ]),
-    "",
-    `💰 Total a pagar: S/. ${formatPEN(params.total)}`,
-    `🚚 Método de envío: ${params.shippingMethod === "lima_delivery" ? "DELIVERY (LIMA)" : "SHALOM (PROVINCIA)"}`,
-    "",
-    "📍 Dirección de entrega:",
-    `${params.direccion}`,
-    `${params.distrito}, ${params.provincia}, Perú`,
-  ];
-  if (params.shippingMethod === "shalom_provincia") {
-    lines.push(`🏢 Agencia Shalom: ${params.shalomAgency}`);
+/** Orden de campos actualmente visible según el método de envío elegido —
+ * espeja el orden real del JSX de abajo, para que el avance de foco nunca
+ * salte a un campo que no está siquiera renderizado. */
+function getOrderedFieldKeys(shippingMethod: ShippingMethod | null): FieldKey[] {
+  const keys: FieldKey[] = ["nombre", "celular"];
+  if (shippingMethod === "shalom_provincia") {
+    keys.push("dni", "provincia", "distrito");
+  } else if (shippingMethod === "lima_delivery") {
+    keys.push("distrito");
   }
-  lines.push(
-    "",
-    "✅ Confirmo que mis datos y dirección son correctos",
-    "✅ Confirmo que recibiré y pagaré el pedido contra entrega",
-  );
-  return lines.join("\n");
+  keys.push("direccion");
+  if (shippingMethod === "shalom_provincia") {
+    keys.push("shalomAgency");
+  }
+  return keys;
 }
 
 export function CheckoutModal() {
-  const { items, total: subtotal, checkoutOpen, closeCheckout, clear } = useCart();
+  const {
+    items,
+    subtotal,
+    discountedSubtotal,
+    bundleDiscount,
+    comboQty,
+    checkoutOpen,
+    closeCheckout,
+    clear,
+  } = useCart();
+
+  const fieldRefs = useRef<Partial<Record<FieldKey, HTMLElement | null>>>({});
+  function focusNext(currentKey: FieldKey, method: ShippingMethod | null) {
+    const order = getOrderedFieldKeys(method);
+    const nextKey = order[order.indexOf(currentKey) + 1];
+    const el = nextKey ? fieldRefs.current[nextKey] : null;
+    el?.focus();
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 
   const [shippingMethod, setShippingMethod] = useState<ShippingMethod | null>(null);
   const [nombre, setNombre] = useState("");
@@ -124,8 +117,8 @@ export function CheckoutModal() {
     };
   }, [isShalom, provinciaId]);
 
-  const shippingCost = shippingMethod ? estimateShippingCost(shippingMethod, subtotal) : 0;
-  const total = subtotal + shippingCost;
+  const shippingCost = shippingMethod ? estimateShippingCost(shippingMethod, discountedSubtotal) : 0;
+  const total = discountedSubtotal + shippingCost;
 
   const provinciasParaShalom = useMemo(
     () => provincias.filter((p) => !LIMA_METRO_PROVINCIA_IDS.includes(p.id)),
@@ -139,8 +132,6 @@ export function CheckoutModal() {
 
   const comboItems = items.filter((i) => i.isCombo);
   const individualItems = items.filter((i) => !i.isCombo);
-  const comboQty = comboItems.reduce((a, c) => a + c.qty, 0);
-  const comboRate = comboQty > 0 ? comboDiscountRate(comboQty) : 0;
   const comboSubtotal = comboItems.reduce((a, c) => a + c.unitPrice * c.qty, 0);
 
   const canSubmit = useMemo(() => {
@@ -196,7 +187,7 @@ export function CheckoutModal() {
       return;
     }
 
-    const message = buildWhatsAppMessage({
+    const message = buildOrderWhatsAppMessage({
       orderNumber: result.orderNumber,
       nombre,
       dni: isShalom ? dni : "",
@@ -212,9 +203,7 @@ export function CheckoutModal() {
 
     clear();
     reset();
-    // api.whatsapp.com directo (no wa.me): el short-link de wa.me corrompe
-    // los emoji en su propio redirect antes de llegar al teléfono.
-    window.location.href = `https://api.whatsapp.com/send/?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}&type=phone_number&app_absent=0`;
+    window.location.href = buildWhatsAppUrl(WHATSAPP_NUMBER, message);
   }
 
   return (
@@ -240,7 +229,6 @@ export function CheckoutModal() {
                 <div className="mb-3 border border-foreground bg-cream p-3">
                   <div className="mb-2 flex items-center justify-between text-xs font-bold">
                     <span>🎁 Tu Combo · {comboQty} decants</span>
-                    {comboRate > 0 && <span className="text-success">-{Math.round(comboRate * 100)}%</span>}
                   </div>
                   <div className="flex flex-col gap-1.5">
                     {comboItems.map((item, i) => (
@@ -255,6 +243,12 @@ export function CheckoutModal() {
                   <div className="mt-2 flex justify-between border-t border-border-strong pt-2 text-[13px] font-bold">
                     <span>Subtotal combo</span>
                     <span>S/. {formatPEN(comboSubtotal)}</span>
+                  </div>
+                  <div className="mt-2.5 border-t border-border-strong pt-2.5">
+                    <BundleDiscountSummary
+                      comboQty={comboQty}
+                      maxTierMessage="🏆 Ya obtuviste el mayor descuento disponible."
+                    />
                   </div>
                 </div>
               )}
@@ -302,6 +296,12 @@ export function CheckoutModal() {
                 <span>Subtotal</span>
                 <span>S/. {formatPEN(subtotal)}</span>
               </div>
+              {bundleDiscount > 0 && (
+                <div className="mt-1 flex justify-between text-success">
+                  <span>Descuento combo</span>
+                  <span>-S/. {formatPEN(bundleDiscount)}</span>
+                </div>
+              )}
               <div className="mt-1 flex justify-between">
                 <span>Envío</span>
                 <span>
@@ -318,25 +318,57 @@ export function CheckoutModal() {
               </div>
             </div>
 
+            <div className="mb-6 border border-border p-4">
+              <FreeShippingSummary discountedSubtotal={discountedSubtotal} shippingMethod={shippingMethod} />
+            </div>
+
             <div className="flex flex-col gap-3">
               <input
+                ref={(el) => {
+                  fieldRefs.current.nombre = el;
+                }}
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    focusNext("nombre", shippingMethod);
+                  }
+                }}
                 placeholder="Nombre completo"
                 className="border border-border-strong px-3.5 py-3 text-sm outline-none"
               />
               <input
+                ref={(el) => {
+                  fieldRefs.current.celular = el;
+                }}
                 value={celular}
-                onChange={(e) => setCelular(e.target.value)}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "").slice(0, 9);
+                  setCelular(digits);
+                  if (digits.length === 9) focusNext("celular", shippingMethod);
+                }}
                 placeholder="Celular con WhatsApp"
+                type="tel"
+                inputMode="numeric"
+                maxLength={9}
                 className="border border-border-strong px-3.5 py-3 text-sm outline-none"
               />
 
               {isShalom && (
                 <input
+                  ref={(el) => {
+                    fieldRefs.current.dni = el;
+                  }}
                   value={dni}
-                  onChange={(e) => setDni(e.target.value)}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "").slice(0, 8);
+                    setDni(digits);
+                    if (digits.length === 8) focusNext("dni", shippingMethod);
+                  }}
                   placeholder="DNI"
+                  type="text"
+                  inputMode="numeric"
                   maxLength={8}
                   className="border border-border-strong px-3.5 py-3 text-sm outline-none"
                 />
@@ -350,8 +382,14 @@ export function CheckoutModal() {
 
               {isLima && (
                 <select
+                  ref={(el) => {
+                    fieldRefs.current.distrito = el;
+                  }}
                   value={distritoId}
-                  onChange={(e) => setDistritoId(e.target.value)}
+                  onChange={(e) => {
+                    setDistritoId(e.target.value);
+                    if (e.target.value) focusNext("distrito", shippingMethod);
+                  }}
                   className="border border-border-strong bg-white px-3.5 py-3 text-sm outline-none"
                 >
                   <option value="">
@@ -368,8 +406,14 @@ export function CheckoutModal() {
               {isShalom && (
                 <>
                   <select
+                    ref={(el) => {
+                      fieldRefs.current.provincia = el;
+                    }}
                     value={provinciaId}
-                    onChange={(e) => setProvinciaId(e.target.value)}
+                    onChange={(e) => {
+                      setProvinciaId(e.target.value);
+                      if (e.target.value) focusNext("provincia", shippingMethod);
+                    }}
                     className="border border-border-strong bg-white px-3.5 py-3 text-sm outline-none"
                   >
                     <option value="">
@@ -383,8 +427,14 @@ export function CheckoutModal() {
                   </select>
 
                   <select
+                    ref={(el) => {
+                    fieldRefs.current.distrito = el;
+                  }}
                     value={distritoId}
-                    onChange={(e) => setDistritoId(e.target.value)}
+                    onChange={(e) => {
+                      setDistritoId(e.target.value);
+                      if (e.target.value) focusNext("distrito", shippingMethod);
+                    }}
                     disabled={!provinciaId}
                     className="border border-border-strong bg-white px-3.5 py-3 text-sm outline-none disabled:bg-cream"
                   >
@@ -405,8 +455,17 @@ export function CheckoutModal() {
               )}
 
               <textarea
+                ref={(el) => {
+                  fieldRefs.current.direccion = el;
+                }}
                 value={direccion}
                 onChange={(e) => setDireccion(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    focusNext("direccion", shippingMethod);
+                  }
+                }}
                 placeholder="Dirección completa"
                 rows={2}
                 className="resize-vertical border border-border-strong px-3.5 py-3 text-sm outline-none"
@@ -414,8 +473,17 @@ export function CheckoutModal() {
 
               {isShalom && (
                 <input
+                  ref={(el) => {
+                    fieldRefs.current.shalomAgency = el;
+                  }}
                   value={shalomAgency}
                   onChange={(e) => setShalomAgency(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      (e.target as HTMLInputElement).blur();
+                    }
+                  }}
                   placeholder="Agencia Shalom (provincia)"
                   className="border border-border-strong px-3.5 py-3 text-sm outline-none"
                 />

@@ -141,9 +141,14 @@ create policy "contact_messages_public_insert" on contact_messages
 -- enviado desde el cliente). Reglas de precio:
 --   - Item individual: 3ml = base*0.7, 5ml = base, 10ml = base*1.7 (redondeado)
 --   - Item de "Arma tu Combo" (is_combo=true): precio plano por tamaño
---     (3ml=S/.30, 5ml=S/.45, 10ml=S/.75) con descuento por cantidad total
---     de combo en el pedido: 10% desde 2 unidades, 15% desde 4.
---   - Envío: 'lima_delivery' gratis desde S/.200 de subtotal, si no S/.15.
+--     (3ml=S/.30, 5ml=S/.45, 10ml=S/.75), sin descuento incrustado por
+--     unidad. El descuento se resta una sola vez sobre el subtotal total,
+--     según la cantidad total de combo en el pedido, con niveles fijos en
+--     soles (mantener sincronizado con BUNDLE_DISCOUNT_TIERS en
+--     src/lib/bundleDiscount.ts): 1→S/.0, 2→S/.10, 3→S/.20, 4→S/.35,
+--     5→S/.45, 6+→S/.50 (nunca se acumulan niveles).
+--   - Envío: 'lima_delivery' gratis desde S/.200 de subtotal con descuento
+--     ya aplicado, si no S/.15.
 --     'shalom_provincia' siempre S/.0 para la tienda — el cliente paga el
 --     flete directamente en la agencia Shalom al recoger su pedido.
 --   - DNI y Agencia Shalom son obligatorios solo si shipping_method es
@@ -170,17 +175,18 @@ security definer
 set search_path = public
 as $$
 declare
-  v_order_id      uuid;
-  v_order_number  bigint;
-  v_item          jsonb;
-  v_product       products%rowtype;
-  v_unit_price    numeric;
-  v_flat_price    numeric;
-  v_subtotal      numeric := 0;
-  v_shipping_cost numeric := 0;
-  v_combo_qty     int := 0;
-  v_combo_rate    numeric := 0;
-  v_computed      jsonb := '[]'::jsonb;
+  v_order_id                uuid;
+  v_order_number            bigint;
+  v_item                    jsonb;
+  v_product                 products%rowtype;
+  v_unit_price               numeric;
+  v_flat_price               numeric;
+  v_subtotal                 numeric := 0;
+  v_shipping_cost            numeric := 0;
+  v_combo_qty                int := 0;
+  v_bundle_discount          numeric := 0;
+  v_subtotal_after_discount  numeric := 0;
+  v_computed                 jsonb := '[]'::jsonb;
 begin
   if p_items is null or jsonb_array_length(p_items) = 0 then
     raise exception 'El pedido no tiene productos';
@@ -203,9 +209,14 @@ begin
   from jsonb_array_elements(p_items) i
   where coalesce((i->>'is_combo')::boolean, false) is true;
 
-  v_combo_rate := case
-    when v_combo_qty >= 4 then 0.15
-    when v_combo_qty >= 2 then 0.10
+  -- Tabla de niveles fijos: mantener sincronizada con
+  -- BUNDLE_DISCOUNT_TIERS en src/lib/bundleDiscount.ts.
+  v_bundle_discount := case
+    when v_combo_qty >= 6 then 50
+    when v_combo_qty >= 5 then 45
+    when v_combo_qty >= 4 then 35
+    when v_combo_qty >= 3 then 20
+    when v_combo_qty >= 2 then 10
     else 0
   end;
 
@@ -227,7 +238,9 @@ begin
       v_flat_price := case (v_item->>'size')
         when '3' then 30 when '5' then 45 when '10' then 75
       end;
-      v_unit_price := round(v_flat_price * (1 - v_combo_rate));
+      -- Precio plano, sin descuento incrustado por unidad: el descuento se
+      -- resta una sola vez sobre el subtotal total del pedido (más abajo).
+      v_unit_price := v_flat_price;
     else
       v_unit_price := case (v_item->>'size')
         when '3' then round(v_product.price * 0.7)
@@ -248,8 +261,10 @@ begin
     );
   end loop;
 
+  v_subtotal_after_discount := greatest(v_subtotal - v_bundle_discount, 0);
+
   if p_shipping_method = 'lima_delivery' then
-    v_shipping_cost := case when v_subtotal >= 200 then 0 else 15 end;
+    v_shipping_cost := case when v_subtotal_after_discount >= 200 then 0 else 15 end;
   else
     v_shipping_cost := 0;
   end if;
@@ -261,7 +276,7 @@ begin
   values (
     p_customer_name, p_customer_phone, nullif(trim(p_dni), ''), p_provincia, p_distrito,
     p_customer_address, nullif(trim(p_shalom_agency), ''), p_shipping_method, v_shipping_cost,
-    nullif(p_notes, ''), v_subtotal, 0, v_subtotal + v_shipping_cost
+    nullif(p_notes, ''), v_subtotal, v_bundle_discount, v_subtotal_after_discount + v_shipping_cost
   )
   returning id, order_number into v_order_id, v_order_number;
 

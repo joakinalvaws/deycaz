@@ -24,17 +24,8 @@ export function priceForSize(basePrice: number, size: Size): number {
   return basePrice;
 }
 
-/** Descuento por cantidad de decants elegidos en Arma tu Combo. */
-export function comboDiscountRate(comboItemCount: number): number {
-  if (comboItemCount >= 4) return 0.15;
-  if (comboItemCount >= 2) return 0.1;
-  return 0;
-}
-
-export function comboUnitPrice(size: Size, comboItemCount: number): number {
-  const rate = comboDiscountRate(comboItemCount);
-  return Math.round(FLAT_COMBO_SIZE_PRICE[size] * (1 - rate));
-}
+/** Sprays estimados por tamaño de decant, usado en el mensaje de WhatsApp. */
+export const SPRAYS_BY_SIZE: Record<Size, number> = { "3": 50, "5": 85, "10": 170 };
 
 export function formatPEN(amount: number): string {
   return amount.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });

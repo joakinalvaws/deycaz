@@ -12,11 +12,15 @@ import {
 import * as cartStore from "@/lib/cartStore";
 import type { AddItemInput } from "@/lib/cartStore";
 import type { CartItem } from "@/lib/types";
+import { getBundleDiscount } from "@/lib/bundleDiscount";
 
 type CartContextValue = {
   items: CartItem[];
   count: number;
-  total: number;
+  subtotal: number;
+  comboQty: number;
+  bundleDiscount: number;
+  discountedSubtotal: number;
   isOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
@@ -60,12 +64,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const closeCheckout = useCallback(() => setCheckoutOpen(false), []);
 
   const count = useMemo(() => items.reduce((a, c) => a + c.qty, 0), [items]);
-  const total = useMemo(() => items.reduce((a, c) => a + c.unitPrice * c.qty, 0), [items]);
+  const subtotal = useMemo(() => items.reduce((a, c) => a + c.unitPrice * c.qty, 0), [items]);
+  const comboQty = useMemo(
+    () => items.filter((i) => i.isCombo).reduce((a, c) => a + c.qty, 0),
+    [items],
+  );
+  const bundleDiscount = useMemo(() => getBundleDiscount(comboQty), [comboQty]);
+  const discountedSubtotal = useMemo(
+    () => Math.max(subtotal - bundleDiscount, 0),
+    [subtotal, bundleDiscount],
+  );
 
   const value: CartContextValue = {
     items,
     count,
-    total,
+    subtotal,
+    comboQty,
+    bundleDiscount,
+    discountedSubtotal,
     isOpen,
     openCart,
     closeCart,

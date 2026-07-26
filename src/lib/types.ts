@@ -28,9 +28,12 @@ export type Testimonial = {
   imageUrl: string | null;
 };
 
-/** Item del carrito. El precio unitario queda fijado al momento de agregarlo
- * (incluye el descuento ya aplicado si viene de Arma tu Combo); el servidor
- * vuelve a calcular el precio autoritativo al finalizar la compra. */
+/** Item del carrito. El precio unitario es siempre el precio "de lista" del
+ * tamaño (para items de combo, el precio plano de `FLAT_COMBO_SIZE_PRICE`,
+ * sin descuento incrustado) — el descuento por nivel de combo se calcula y
+ * resta una sola vez a nivel de subtotal (ver `CartContext` y
+ * `bundleDiscount.ts`), nunca por unidad. El servidor vuelve a calcular el
+ * precio y el descuento autoritativos al finalizar la compra. */
 export type CartItem = {
   productId: number;
   name: string;

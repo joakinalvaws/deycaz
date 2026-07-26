@@ -2,9 +2,12 @@
 
 import { useCart } from "@/context/CartContext";
 import { formatPEN } from "@/lib/pricing";
+import { BundleDiscountSummary } from "./BundleDiscountSummary";
+import { FreeShippingSummary } from "./FreeShippingSummary";
 
 export function CartDrawer() {
-  const { items, isOpen, closeCart, removeItem, changeQty, total, openCheckout } = useCart();
+  const { items, isOpen, closeCart, removeItem, changeQty, comboQty, discountedSubtotal, openCheckout } =
+    useCart();
 
   if (!isOpen) return null;
 
@@ -62,9 +65,17 @@ export function CartDrawer() {
         </div>
 
         <div className="border-t border-border px-6 py-5">
+          {comboQty > 0 && (
+            <div className="mb-4">
+              <BundleDiscountSummary comboQty={comboQty} />
+            </div>
+          )}
+          <div className="mb-4">
+            <FreeShippingSummary discountedSubtotal={discountedSubtotal} shippingMethod={null} />
+          </div>
           <div className="mb-4 flex justify-between text-sm font-bold">
             <span>TOTAL</span>
-            <span>S/. {formatPEN(total)}</span>
+            <span>S/. {formatPEN(discountedSubtotal)}</span>
           </div>
           <button
             type="button"

@@ -12,3 +12,13 @@ export function estimateShippingCost(method: ShippingMethod, subtotal: number): 
   }
   return 0; // Shalom: el cliente paga el flete directamente en la agencia.
 }
+
+/** Progreso hacia el envío gratis (Lima Delivery), de 0 a 1. */
+export function getFreeShippingProgress(subtotal: number): number {
+  return Math.min(subtotal / FREE_SHIPPING_THRESHOLD, 1);
+}
+
+/** Cuánto falta (en soles) para el envío gratis (Lima Delivery). 0 si ya lo alcanzó. */
+export function getRemainingForFreeShipping(subtotal: number): number {
+  return Math.max(FREE_SHIPPING_THRESHOLD - subtotal, 0);
+}
