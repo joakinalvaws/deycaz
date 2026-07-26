@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as productsService from "../services/products";
 import { compressImage } from "../services/imageCompression";
 import type { ProductImageSizeTag } from "../types";
+import { revalidateProductPaths } from "@/modules/admin/shared/actions/revalidate";
 
 function imagesKey(productId: number) {
   return ["admin", "products", "images", productId] as const;
@@ -25,7 +26,10 @@ export function useUploadProductImages(productId: number) {
       const compressed = await Promise.all(files.map(compressImage));
       return Promise.all(compressed.map((file) => productsService.uploadProductImage(productId, file)));
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: imagesKey(productId) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: imagesKey(productId) });
+      revalidateProductPaths(productId);
+    },
   });
 }
 
@@ -33,7 +37,10 @@ export function useDeleteProductImage(productId: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (imageId: number) => productsService.deleteProductImage(imageId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: imagesKey(productId) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: imagesKey(productId) });
+      revalidateProductPaths(productId);
+    },
   });
 }
 
@@ -41,7 +48,10 @@ export function useReorderProductImages(productId: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (images: { id: number; sort_order: number }[]) => productsService.reorderProductImages(images),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: imagesKey(productId) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: imagesKey(productId) });
+      revalidateProductPaths(productId);
+    },
   });
 }
 
@@ -55,6 +65,7 @@ export function useUploadPrincipalImage(productId: number) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: imagesKey(productId) });
       queryClient.invalidateQueries({ queryKey: ["admin", "products", "detail", productId] });
+      revalidateProductPaths(productId);
     },
   });
 }
@@ -66,6 +77,9 @@ export function useSetSizeTagImage(productId: number) {
       const compressed = await compressImage(file);
       return productsService.setSizeTagImage(productId, sizeTag, compressed);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: imagesKey(productId) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: imagesKey(productId) });
+      revalidateProductPaths(productId);
+    },
   });
 }

@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as productsService from "../services/products";
 import type { ProductFilters, ProductInput } from "../services/products";
 import type { Product } from "../types";
+import { revalidateProductPaths } from "@/modules/admin/shared/actions/revalidate";
 
 const PRODUCTS_LIST_KEY = ["admin", "products", "list"] as const;
 
@@ -26,7 +27,10 @@ export function useCreateProduct() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: ProductInput) => productsService.createProduct(input),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: PRODUCTS_LIST_KEY }),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: PRODUCTS_LIST_KEY });
+      revalidateProductPaths(data.id, data.category_slug);
+    },
   });
 }
 
@@ -37,6 +41,7 @@ export function useUpdateProduct(id: number) {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: PRODUCTS_LIST_KEY });
       queryClient.setQueryData(["admin", "products", "detail", id], data);
+      revalidateProductPaths(id, data.category_slug);
     },
   });
 }
@@ -45,7 +50,10 @@ export function useDeleteProduct() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => productsService.deleteProduct(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: PRODUCTS_LIST_KEY }),
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: PRODUCTS_LIST_KEY });
+      revalidateProductPaths(id);
+    },
   });
 }
 
@@ -67,6 +75,9 @@ export function useToggleProductActive() {
     onError: (_err, _vars, context) => {
       context?.previous.forEach(([key, data]) => queryClient.setQueryData(key, data));
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: PRODUCTS_LIST_KEY }),
+    onSettled: (data, _err, { id }) => {
+      queryClient.invalidateQueries({ queryKey: PRODUCTS_LIST_KEY });
+      revalidateProductPaths(id, data?.category_slug);
+    },
   });
 }
