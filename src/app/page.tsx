@@ -7,7 +7,7 @@ import { Testimonials } from "@/components/Testimonials";
 import { CategoryTile } from "@/components/CategoryTile";
 import { Marquee } from "@/components/Marquee";
 import { TikTokEmbed } from "@/components/TikTokEmbed";
-import heroMasVendido from "@/assets/hero-mas-vendido.webp";
+import heroFrascos from "@/assets/hero-frascos.png";
 
 export const revalidate = 300;
 
@@ -20,40 +20,53 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* El texto/precio promocional va integrado en la imagen publicitaria
-          (banner diseñado aparte) — por eso esta sección ya no renderiza
-          título/precio, solo la imagen y el botón. En mobile el hero usa un
-          alto en vh (con recorte de imagen vía object-cover, a pedido) en
-          vez de seguir el aspect-ratio real del banner; en escritorio sí se
-          respeta el aspect-ratio 1920x700 sin recortes.
-          El contenido (badge+texto+botellas) ocupa del 23% al 78.5% del
-          ancho de la imagen (55.5%). A menor alto de contenedor, más ancho
-          de imagen entra en el recorte (menos zoom) — se bajó de 40vh a
-          35vh para mostrar más campo visual a los lados (medido con sharp:
-          40vh mostraba solo ~42% del ancho de la imagen, 35vh muestra
-          ~48%), sin agregar padding ni fondo artificial. object-center
-          recortaba el inicio del texto (precio, badge) Y la 3ra botella a
-          la vez — peor que priorizar. Con object-position 40% horizontal
-          se ve el texto/precio/oferta COMPLETO (lo más importante para
-          conversión) y las 2 primeras botellas. -mt-24 en todos los
-          tamaños: el header es "fixed" siempre (ver Header.tsx) y flota
-          transparente encima de este hero. */}
-      <section className="relative -mt-24 h-[35vh] min-h-[240px] w-full lg:aspect-[1920/700] lg:h-auto lg:min-h-0">
-        <Image
-          src={heroMasVendido}
-          alt="El más vendido"
-          fill
-          sizes="100vw"
-          priority
-          className="object-cover object-[40%_50%] lg:object-center"
-        />
-        <div className="absolute right-6 bottom-9 md:right-10">
-          <Link
-            href="/combo"
-            className="inline-block rounded-full bg-foreground px-10 py-4 text-sm font-semibold text-white shadow-[0_10px_26px_rgba(0,0,0,0.22)]"
-          >
-            Comprar ahora
-          </Link>
+      {/* Hero recodificado (antes era una sola imagen banner con el texto
+          ya "quemado" en el diseño). Ahora el texto es HTML real y la
+          imagen es solo las botellas (PNG con fondo transparente), para
+          poder reordenar independientemente en mobile vs desktop. -mt-24
+          en todos los tamaños: el header es "fixed" siempre (ver
+          Header.tsx) y flota transparente encima de este hero; el padding
+          top interno (pt-32/md:pt-40) evita que el título quede pegado al
+          header. order-1/order-2 (con su variante md:) invierten el orden
+          visual entre breakpoints sin duplicar el HTML: en mobile la
+          imagen queda arriba (order-1) y el texto abajo (order-2); en
+          desktop el texto queda a la izquierda (md:order-1) y la imagen a
+          la derecha (md:order-2), en flex-row. */}
+      <section className="relative -mt-24 w-full bg-[linear-gradient(to_bottom,#e8e6e1_0%,#ffffff_50%,#e8e6e1_100%)] px-6 pt-32 pb-16 md:px-10 md:pt-40 md:pb-24">
+        <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-10 md:flex-row md:justify-between md:gap-12">
+          <div className="order-2 flex w-full flex-col items-center text-center md:order-1 md:w-1/2 md:items-start md:text-left">
+            <span className="inline-flex items-center gap-2 rounded-full bg-[#00c164] px-4 py-1.5 text-xs font-bold text-foreground">
+              ★ MÁS VENDIDO
+            </span>
+            <h1 className="font-display mt-5 text-5xl leading-[0.9] tracking-wide text-foreground md:text-7xl">
+              ROMPE CUELLOS
+            </h1>
+            <p className="mt-3 text-sm font-semibold text-muted md:text-base">
+              Erba Pura | Valentino | Stronger With You
+            </p>
+            <div className="mt-6 flex items-center gap-3">
+              <span className="text-5xl font-extrabold text-foreground md:text-6xl">
+                S/.89<span className="text-2xl">.00</span>
+              </span>
+              <span className="inline-block rounded-md bg-foreground px-3 py-1.5 text-xs font-bold text-white">-34%</span>
+            </div>
+            <div className="mt-1 text-lg text-muted line-through">S/.135.00</div>
+            <Link
+              href="/combo"
+              className="mt-8 inline-block rounded-full bg-foreground px-10 py-4 text-sm font-semibold text-white shadow-[0_10px_26px_rgba(0,0,0,0.22)]"
+            >
+              Comprar ahora
+            </Link>
+          </div>
+
+          <div className="order-1 w-full md:order-2 md:w-1/2">
+            <Image
+              src={heroFrascos}
+              alt="Perfumes decantados: Erba Pura, Valentino y Stronger With You"
+              priority
+              className="mx-auto h-auto w-[240px] sm:w-[300px] md:mr-0 md:w-[380px] lg:w-[460px]"
+            />
+          </div>
         </div>
       </section>
 
@@ -127,9 +140,9 @@ export default async function HomePage() {
             />
           </div>
           <div className="flex flex-col justify-center">
-            <h1 className="mb-5 text-3xl leading-tight font-bold md:text-4xl lg:text-[40px]">
+            <h2 className="mb-5 text-3xl leading-tight font-bold md:text-4xl lg:text-[40px]">
               Como en video, así de real
-            </h1>
+            </h2>
             <p className="text-muted mb-4 max-w-[520px] text-sm leading-relaxed md:text-base">
               En nuestro TikTok mostramos cada pedido tal cual sale de nuestras manos: perfumes
               decantados desde el frasco original, sellados y listos para viajar a cualquier
