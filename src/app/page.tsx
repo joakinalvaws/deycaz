@@ -25,6 +25,10 @@ export default async function HomePage() {
           ~40% del alto de pantalla (con recorte de imagen vía object-cover,
           a pedido) en vez de seguir el aspect-ratio real del banner; en
           escritorio sí se respeta el aspect-ratio 1920x700 sin recortes.
+          El contenido del banner (badge+texto+botellas) ocupa del 23% al
+          78.5% del ancho de la imagen — centrado casi exacto (medido con
+          sharp) — por eso object-center (el default) es lo correcto; un
+          recorte a la izquierda o derecha pierde la mitad del contenido.
           -mt-24 en todos los tamaños: el header es "fixed" siempre (ver
           Header.tsx) y flota transparente encima de este hero. */}
       <section className="relative -mt-24 h-[40vh] min-h-[260px] w-full lg:aspect-[1920/700] lg:h-auto lg:min-h-0">
@@ -34,7 +38,7 @@ export default async function HomePage() {
           fill
           sizes="100vw"
           priority
-          className="object-cover object-left"
+          className="object-cover"
         />
         <div className="absolute right-6 bottom-9 md:right-10">
           <Link
