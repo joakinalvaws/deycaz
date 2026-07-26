@@ -17,6 +17,7 @@ export type Product = {
   bestSeller: boolean;
   onSale: boolean;
   imageUrl: string | null;
+  description: string | null;
 };
 
 export type Testimonial = {

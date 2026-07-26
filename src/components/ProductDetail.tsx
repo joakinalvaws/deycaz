@@ -4,16 +4,21 @@ import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { SIZES, priceForSize, formatPEN, type Size } from "@/lib/pricing";
 
+const GENERIC_DESCRIPTION =
+  "Decant 100% original, envasado y sellado con cuidado. Ideal para descubrir tu fragancia antes de invertir en el frasco completo.";
+
 export function ProductDetail({
   productId,
   name,
   categorySlug,
   basePrice,
+  description,
 }: {
   productId: number;
   name: string;
   categorySlug: string;
   basePrice: number;
+  description: string | null;
 }) {
   const [size, setSize] = useState<Size>("5");
   const [added, setAdded] = useState(false);
@@ -62,8 +67,7 @@ export function ProductDetail({
       </button>
 
       <p className="text-muted border-t border-border pt-6 text-sm leading-relaxed">
-        Decant 100% original, envasado y sellado con cuidado. Ideal para descubrir tu fragancia antes de
-        invertir en el frasco completo.
+        {description || GENERIC_DESCRIPTION}
       </p>
     </div>
   );

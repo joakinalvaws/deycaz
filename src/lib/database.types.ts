@@ -37,6 +37,7 @@ export type Database = {
           best_seller: boolean;
           on_sale: boolean;
           image_url: string | null;
+          description: string | null;
           active: boolean;
           created_at: string;
         };

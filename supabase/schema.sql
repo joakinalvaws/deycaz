@@ -31,6 +31,8 @@ create table if not exists products (
   best_seller     boolean not null default false,
   on_sale         boolean not null default false,
   image_url       text,          -- null => el frontend usa un placeholder
+  -- null => la página de producto muestra el texto genérico de siempre.
+  description     text check (description is null or char_length(description) <= 2000),
   active          boolean not null default true,
   created_at      timestamptz not null default now()
 );

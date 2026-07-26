@@ -45,6 +45,7 @@ export default async function ProductoPage({ params }: { params: Promise<{ id: s
     "@type": "Product",
     name: product.name,
     category: product.categorySlug,
+    ...(product.description ? { description: product.description } : {}),
     ...(product.imageUrl ? { image: product.imageUrl } : {}),
     offers: {
       "@type": "Offer",
@@ -71,6 +72,7 @@ export default async function ProductoPage({ params }: { params: Promise<{ id: s
           name={product.name}
           categorySlug={product.categorySlug}
           basePrice={product.price}
+          description={product.description}
         />
 
         {related.length > 0 && (

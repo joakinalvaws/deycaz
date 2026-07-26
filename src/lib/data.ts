@@ -11,6 +11,7 @@ function mapProduct(row: {
   best_seller: boolean;
   on_sale: boolean;
   image_url: string | null;
+  description: string | null;
 }): Product {
   return {
     id: row.id,
@@ -22,6 +23,7 @@ function mapProduct(row: {
     bestSeller: row.best_seller,
     onSale: row.on_sale,
     imageUrl: row.image_url,
+    description: row.description,
   };
 }
 
@@ -56,7 +58,7 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
 export async function getAllProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from("products")
-    .select("id, name, category_slug, price, original_price, badge, best_seller, on_sale, image_url")
+    .select("id, name, category_slug, price, original_price, badge, best_seller, on_sale, image_url, description")
     .order("id", { ascending: true });
   if (error) throw new Error(`No se pudieron cargar los productos: ${error.message}`);
   return (data ?? []).map(mapProduct);
@@ -65,7 +67,7 @@ export async function getAllProducts(): Promise<Product[]> {
 export async function getProductById(id: number): Promise<Product | null> {
   const { data, error } = await supabase
     .from("products")
-    .select("id, name, category_slug, price, original_price, badge, best_seller, on_sale, image_url")
+    .select("id, name, category_slug, price, original_price, badge, best_seller, on_sale, image_url, description")
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(`No se pudo cargar el producto: ${error.message}`);
@@ -75,7 +77,7 @@ export async function getProductById(id: number): Promise<Product | null> {
 export async function getProductsByCategory(categorySlug: string): Promise<Product[]> {
   const { data, error } = await supabase
     .from("products")
-    .select("id, name, category_slug, price, original_price, badge, best_seller, on_sale, image_url")
+    .select("id, name, category_slug, price, original_price, badge, best_seller, on_sale, image_url, description")
     .eq("category_slug", categorySlug)
     .order("id", { ascending: true });
   if (error) throw new Error(`No se pudieron cargar los productos: ${error.message}`);
@@ -85,7 +87,7 @@ export async function getProductsByCategory(categorySlug: string): Promise<Produ
 export async function getBestSellers(): Promise<Product[]> {
   const { data, error } = await supabase
     .from("products")
-    .select("id, name, category_slug, price, original_price, badge, best_seller, on_sale, image_url")
+    .select("id, name, category_slug, price, original_price, badge, best_seller, on_sale, image_url, description")
     .eq("best_seller", true)
     .order("id", { ascending: true });
   if (error) throw new Error(`No se pudieron cargar los más vendidos: ${error.message}`);
@@ -95,7 +97,7 @@ export async function getBestSellers(): Promise<Product[]> {
 export async function getPromoProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from("products")
-    .select("id, name, category_slug, price, original_price, badge, best_seller, on_sale, image_url")
+    .select("id, name, category_slug, price, original_price, badge, best_seller, on_sale, image_url, description")
     .eq("on_sale", true)
     .order("id", { ascending: true });
   if (error) throw new Error(`No se pudieron cargar las promociones: ${error.message}`);
