@@ -9,7 +9,7 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
       <div className="mx-auto max-w-[1400px]">
         <div className="mx-auto mb-10 max-w-[660px] text-center">
           <div className="font-display text-[56px] leading-none tracking-wide">
-            +300 CLIENTES SATISFECHOS
+            <span className="text-[#166534]">+300</span> CLIENTES SATISFECHOS
           </div>
           {/* Solo en escritorio — en mobile ocupa mucho espacio para lo que aporta. */}
           <p className="mt-3.5 hidden text-sm leading-relaxed text-[#3a3a38] md:block">

@@ -28,7 +28,6 @@ export function Header({ products, categories }: { products: Product[]; categori
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [catalogOpen, setCatalogOpen] = useState(false);
   const [atTop, setAtTop] = useState(true);
   const [hidden, setHidden] = useState(false);
   const catalogCategories = categories.filter((c) => c.slug !== "promos");
@@ -234,39 +233,27 @@ export function Header({ products, categories }: { products: Product[]; categori
                 }
                 return (
                   <div key={item.href}>
-                    <div className={`flex items-center justify-between ${active ? "bg-cream" : ""}`}>
-                      <Link
-                        href={item.href}
-                        className={`flex-1 px-4 py-3 text-sm font-semibold tracking-wide ${
-                          active ? "text-foreground" : "text-muted"
-                        }`}
-                      >
-                        {item.label}
-                      </Link>
-                      <button
-                        type="button"
-                        aria-label={catalogOpen ? "Ocultar secciones de catálogo" : "Ver secciones de catálogo"}
-                        onClick={() => setCatalogOpen((v) => !v)}
-                        className="-m-2 mr-2 bg-transparent p-2 text-muted"
-                      >
-                        <span className={`inline-block transition-transform ${catalogOpen ? "rotate-90" : ""}`}>›</span>
-                      </button>
+                    <Link
+                      href={item.href}
+                      className={`block px-4 py-3 text-sm font-semibold tracking-wide ${
+                        active ? "bg-cream text-foreground" : "text-muted"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                    <div className="flex flex-col gap-0.5 pb-1">
+                      {catalogCategories.map((c) => (
+                        <Link
+                          key={c.slug}
+                          href={`/categoria/${c.slug}`}
+                          className={`px-8 py-2 text-[13px] font-medium ${
+                            pathname === `/categoria/${c.slug}` ? "text-foreground" : "text-muted"
+                          }`}
+                        >
+                          {catalogLabel(c)}
+                        </Link>
+                      ))}
                     </div>
-                    {catalogOpen && (
-                      <div className="flex flex-col gap-0.5 pb-1">
-                        {catalogCategories.map((c) => (
-                          <Link
-                            key={c.slug}
-                            href={`/categoria/${c.slug}`}
-                            className={`px-8 py-2 text-[13px] font-medium ${
-                              pathname === `/categoria/${c.slug}` ? "text-foreground" : "text-muted"
-                            }`}
-                          >
-                            {catalogLabel(c)}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 );
               })}

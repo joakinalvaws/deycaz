@@ -40,10 +40,10 @@ export default async function HomePage() {
       <section className="relative -mt-28 min-h-[50vh] w-full bg-[linear-gradient(to_bottom,#e8e6e1_0%,#ffffff_50%,#e8e6e1_100%)] px-6 pt-24 pb-6 md:px-10 md:pt-40 md:pb-10 lg:-mt-24 lg:min-h-0">
         <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-3 md:flex-row md:justify-center md:gap-10 lg:gap-14">
           <div className="order-2 flex w-full flex-col items-center text-center md:order-1 md:w-auto md:items-start md:text-left">
-            <span className="inline-flex items-center gap-2 rounded-full bg-[#00c164] px-4 py-1.5 text-xs font-bold text-foreground">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#00c164] px-3 py-1 text-[10px] font-bold text-foreground md:gap-2 md:px-4 md:py-1.5 md:text-xs">
               ★ MÁS VENDIDO
             </span>
-            <h1 className="font-display mt-3 text-6xl leading-[0.9] font-extrabold tracking-tight md:text-8xl">
+            <h1 className="font-display mt-3 text-8xl leading-[0.9] font-extrabold tracking-wide">
               <span className="block text-[#6b6b6b]">ROMPE</span>
               <span className="block text-foreground">CUELLOS</span>
             </h1>
@@ -61,7 +61,7 @@ export default async function HomePage() {
             <div className="mt-1 text-sm text-muted line-through md:text-xl">S/.135.00</div>
             <Link
               href="/combo"
-              className="mt-4 inline-block rounded-full bg-foreground px-10 py-3.5 text-sm font-semibold text-white shadow-[0_10px_26px_rgba(0,0,0,0.22)] md:mt-8 md:py-4"
+              className="mt-4 inline-block rounded-full bg-foreground px-7 py-3 text-sm font-semibold text-white shadow-[0_10px_26px_rgba(0,0,0,0.22)] md:mt-8 md:px-10 md:py-4"
             >
               Comprar ahora
             </Link>
