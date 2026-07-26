@@ -37,25 +37,27 @@ export default async function HomePage() {
           en mobile la imagen queda arriba (order-1) y el texto abajo
           (order-2); en desktop el texto queda a la izquierda (md:order-1)
           y la imagen a la derecha (md:order-2), en flex-row. */}
-      <section className="relative -mt-28 min-h-[50vh] w-full bg-[linear-gradient(to_bottom,#e8e6e1_0%,#ffffff_50%,#e8e6e1_100%)] px-6 pt-24 pb-8 md:px-10 md:pt-40 md:pb-24 lg:-mt-24 lg:min-h-0">
-        <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-3 md:flex-row md:justify-between md:gap-12">
-          <div className="order-2 flex w-full flex-col items-center text-center md:order-1 md:w-1/2 md:items-start md:text-left">
+      <section className="relative -mt-28 min-h-[50vh] w-full bg-[linear-gradient(to_bottom,#e8e6e1_0%,#ffffff_50%,#e8e6e1_100%)] px-6 pt-24 pb-6 md:px-10 md:pt-40 md:pb-10 lg:-mt-24 lg:min-h-0">
+        <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-3 md:flex-row md:justify-center md:gap-10 lg:gap-14">
+          <div className="order-2 flex w-full flex-col items-center text-center md:order-1 md:w-auto md:items-start md:text-left">
             <span className="inline-flex items-center gap-2 rounded-full bg-[#00c164] px-4 py-1.5 text-xs font-bold text-foreground">
               ★ MÁS VENDIDO
             </span>
-            <h1 className="font-display mt-3 text-4xl leading-[0.9] tracking-wide text-foreground md:text-7xl">
+            <h1 className="font-display mt-3 text-4xl leading-[0.9] text-foreground md:text-8xl">
               ROMPE CUELLOS
             </h1>
             <p className="mt-2 text-xs font-semibold text-muted md:text-base">
               Erba Pura | Valentino | Stronger With You
             </p>
             <div className="mt-3 flex items-center gap-3">
-              <span className="text-4xl font-extrabold text-foreground md:text-6xl">
-                S/.89<span className="text-xl">.00</span>
+              <span className="text-4xl font-extrabold text-foreground md:text-7xl">
+                S/.89<span className="text-xl md:text-3xl">.00</span>
               </span>
-              <span className="inline-block rounded-md bg-foreground px-3 py-1.5 text-xs font-bold text-white">-34%</span>
+              <span className="inline-block rounded-md bg-foreground px-3 py-1.5 text-xs font-bold text-white md:px-4 md:py-2 md:text-sm">
+                -34%
+              </span>
             </div>
-            <div className="mt-1 text-sm text-muted line-through md:text-lg">S/.135.00</div>
+            <div className="mt-1 text-sm text-muted line-through md:text-xl">S/.135.00</div>
             <Link
               href="/combo"
               className="mt-4 inline-block rounded-full bg-foreground px-10 py-3.5 text-sm font-semibold text-white shadow-[0_10px_26px_rgba(0,0,0,0.22)] md:mt-8 md:py-4"
@@ -64,12 +66,12 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <div className="order-1 w-full md:order-2 md:w-1/2">
+          <div className="order-1 w-full md:order-2 md:w-auto">
             <Image
               src={heroFrascos}
               alt="Perfumes decantados: Erba Pura, Valentino y Stronger With You"
               priority
-              className="mx-auto h-auto w-[280px] sm:w-[320px] md:mr-0 md:w-[420px] lg:w-[500px]"
+              className="mx-auto h-auto w-[280px] sm:w-[320px] md:w-[480px] lg:w-[560px]"
             />
           </div>
         </div>
