@@ -30,8 +30,8 @@ export function Footer() {
       </section>
 
       <footer className="bg-foreground px-6 pt-10 pb-10 md:px-10">
-        <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-10 border-t border-[#232321] pt-10 md:grid-cols-[1.3fr_1fr_1fr]">
-          <div>
+        <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-x-8 gap-y-10 border-t border-[#232321] pt-10 md:grid-cols-[1.3fr_1fr_1fr]">
+          <div className="col-span-2 md:col-span-1">
             <div className="font-serif mb-3 text-2xl font-bold tracking-[3px] text-white">DEYCAZ</div>
             <p className="text-[13px] leading-relaxed text-[#807e7a]">
               Productos de calidad para la vida moderna.

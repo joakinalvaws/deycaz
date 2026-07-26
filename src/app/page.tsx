@@ -21,15 +21,14 @@ export default async function HomePage() {
     <>
       {/* El texto/precio promocional va integrado en la imagen publicitaria
           (banner diseñado aparte) — por eso esta sección ya no renderiza
-          título/precio, solo la imagen y el botón. El contenedor usa el
-          aspect-ratio real del banner (1920x700) para que la imagen llene
-          el ancho completo sin recortes ni huecos a ningún tamaño.
+          título/precio, solo la imagen y el botón. En mobile el hero mide
+          ~40% del alto de pantalla (con recorte de imagen vía object-cover,
+          a pedido) en vez de seguir el aspect-ratio real del banner; en
+          escritorio sí se respeta el aspect-ratio 1920x700 sin recortes.
           lg:-mt-24 solo en escritorio: ahí el header flota fijo encima del
-          hero (ver Header.tsx). En celular el banner (~140px de alto) es
-          más bajo que el propio header de 2 filas, así que superponerlos
-          tapaba el botón — en celular el hero va en flujo normal, debajo
-          del header sticky, sin recortarse. */}
-      <section className="relative aspect-[1920/700] w-full lg:-mt-24">
+          hero (ver Header.tsx) — en celular el header es sticky (no fixed),
+          así que el hero va en flujo normal, sin necesitar compensación. */}
+      <section className="relative h-[40vh] min-h-[260px] w-full lg:aspect-[1920/700] lg:h-auto lg:min-h-0 lg:-mt-24">
         <Image
           src={heroMasVendido}
           alt="El más vendido"

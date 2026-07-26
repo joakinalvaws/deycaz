@@ -16,9 +16,12 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
             que solo pagues cuando tengas tu pedido en la mano.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
+        <div className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 lg:grid-cols-4">
           {testimonials.map((t) => (
-            <div key={t.id} className="border border-border bg-white p-6">
+            <div
+              key={t.id}
+              className="w-[85%] flex-none snap-start border border-border bg-white p-6 sm:w-auto"
+            >
               <div className="mb-3 text-[15px] tracking-widest">{"★".repeat(t.stars)}{"☆".repeat(5 - t.stars)}</div>
               <p className="mb-4 text-sm leading-relaxed text-[#3a3a38]">&ldquo;{t.text}&rdquo;</p>
               <div className="text-[13px] font-bold">{t.name}</div>
