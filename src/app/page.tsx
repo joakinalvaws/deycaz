@@ -119,7 +119,7 @@ export default async function HomePage() {
       </section>
 
       <section className="bg-cream px-6 pt-16 pb-16 md:px-10 md:pt-24 md:pb-20">
-        <div className="mx-auto flex max-w-[1400px] flex-col gap-10 md:flex-row md:items-center md:gap-12">
+        <div className="mx-auto flex max-w-[1400px] flex-col gap-10 md:flex-row md:items-center md:justify-center md:gap-12">
           <div className="flex justify-center md:w-[340px] md:flex-none">
             <TikTokEmbed
               url="https://www.tiktok.com/@deycaz.pe/video/7662928335361625365"
@@ -136,8 +136,8 @@ export default async function HomePage() {
               rincón del Perú.
             </p>
             <p className="text-muted mb-4 max-w-[520px] text-sm leading-relaxed md:text-base">
-              Nada de fotos de catálogo — así se ve, se siente y se envía un DEYCAZ real, del
-              mismo frasco que vas a recibir tú.
+              Nada de fotos de catálogo — así se ve y se envía un DEYCAZ real: perfume 100%
+              original, decantado directo del mismo frasco que vas a recibir tú.
             </p>
             <p className="text-muted max-w-[520px] text-sm leading-relaxed md:text-base">
               Síguenos en @deycaz.pe para ver las próximas novedades antes que nadie.
