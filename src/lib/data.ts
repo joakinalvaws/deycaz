@@ -107,8 +107,14 @@ export async function getPromoProducts(): Promise<Product[]> {
 export async function getTestimonials(): Promise<Testimonial[]> {
   const { data, error } = await supabase
     .from("testimonials")
-    .select("id, name, stars, text")
+    .select("id, name, stars, text, image_url")
     .order("sort_order", { ascending: true });
   if (error) throw new Error(`No se pudieron cargar los testimonios: ${error.message}`);
-  return data ?? [];
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    stars: row.stars,
+    text: row.text,
+    imageUrl: row.image_url,
+  }));
 }

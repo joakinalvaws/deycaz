@@ -52,6 +52,7 @@ create table if not exists testimonials (
   name        text not null,
   stars       smallint not null default 5 check (stars between 1 and 5),
   text        text not null,
+  image_url   text,          -- null => la tarjeta usa fondo blanco de siempre
   sort_order  int not null default 0,
   created_at  timestamptz not null default now()
 );

@@ -55,6 +55,7 @@ export type Database = {
           name: string;
           stars: number;
           text: string;
+          image_url: string | null;
           sort_order: number;
           created_at: string;
         };

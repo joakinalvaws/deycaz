@@ -25,6 +25,7 @@ export type Testimonial = {
   name: string;
   stars: number;
   text: string;
+  imageUrl: string | null;
 };
 
 /** Item del carrito. El precio unitario queda fijado al momento de agregarlo

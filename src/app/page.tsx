@@ -25,17 +25,16 @@ export default async function HomePage() {
           ~40% del alto de pantalla (con recorte de imagen vía object-cover,
           a pedido) en vez de seguir el aspect-ratio real del banner; en
           escritorio sí se respeta el aspect-ratio 1920x700 sin recortes.
-          lg:-mt-24 solo en escritorio: ahí el header flota fijo encima del
-          hero (ver Header.tsx) — en celular el header es sticky (no fixed),
-          así que el hero va en flujo normal, sin necesitar compensación. */}
-      <section className="relative h-[40vh] min-h-[260px] w-full lg:aspect-[1920/700] lg:h-auto lg:min-h-0 lg:-mt-24">
+          -mt-24 en todos los tamaños: el header es "fixed" siempre (ver
+          Header.tsx) y flota transparente encima de este hero. */}
+      <section className="relative -mt-24 h-[40vh] min-h-[260px] w-full lg:aspect-[1920/700] lg:h-auto lg:min-h-0">
         <Image
           src={heroMasVendido}
           alt="El más vendido"
           fill
           sizes="100vw"
           priority
-          className="object-cover"
+          className="object-cover object-left"
         />
         <div className="absolute right-6 bottom-9 md:right-10">
           <Link
@@ -88,20 +87,21 @@ export default async function HomePage() {
       <section className="px-6 pt-16 md:px-10 md:pt-24">
         <div className="mx-auto max-w-[1400px]">
           <h2 className="font-display mb-9 text-center text-4xl tracking-wide md:text-[42px]">CATÁLOGO</h2>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+          <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0 lg:grid-cols-6">
             {categories.map((c) => (
-              <CategoryTile
-                key={c.slug}
-                category={c}
-                imageUrl={null}
-                caption={
-                  c.slug === "promos"
-                    ? "PROMOCIONES"
-                    : c.slug === "damas"
-                      ? "DAMAS"
-                      : `Perfumes ${c.name}`
-                }
-              />
+              <div key={c.slug} className="w-[42%] flex-none snap-start sm:w-auto">
+                <CategoryTile
+                  category={c}
+                  imageUrl={null}
+                  caption={
+                    c.slug === "promos"
+                      ? "PROMOCIONES"
+                      : c.slug === "damas"
+                        ? "DAMAS"
+                        : `Perfumes ${c.name}`
+                  }
+                />
+              </div>
             ))}
           </div>
         </div>
