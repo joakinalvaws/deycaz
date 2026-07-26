@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAllProducts, getProductById } from "@/lib/data";
+import { getAllProducts, getProductById, getProductImages } from "@/lib/data";
 import { ProductImage } from "@/components/ProductImage";
-import { ProductDetail } from "@/components/ProductDetail";
+import { ProductView } from "@/components/ProductView";
 import { formatPEN } from "@/lib/pricing";
 
 export const revalidate = 300;
@@ -35,7 +35,7 @@ export default async function ProductoPage({ params }: { params: Promise<{ id: s
   const product = await getProductById(productId);
   if (!product) notFound();
 
-  const allProducts = await getAllProducts();
+  const [allProducts, images] = await Promise.all([getAllProducts(), getProductImages(productId)]);
   const related = allProducts
     .filter((p) => p.categorySlug === product.categorySlug && p.id !== product.id)
     .slice(0, 4);
@@ -59,25 +59,19 @@ export default async function ProductoPage({ params }: { params: Promise<{ id: s
   return (
     <section className="mx-auto grid max-w-[1200px] grid-cols-1 gap-10 px-6 py-10 md:grid-cols-2 md:gap-16 md:px-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
-      <div className="relative aspect-square w-full bg-cream">
-        <ProductImage src={product.imageUrl} alt={product.name} sizes="(min-width: 768px) 50vw, 100vw" priority />
-      </div>
 
-      <div>
-        <h1 className="mb-2.5 text-[28px] font-bold">{product.name}</h1>
-        <p className="text-muted mb-5 text-[13px] tracking-wide uppercase">{product.categorySlug}</p>
-
-        <ProductDetail
-          productId={product.id}
-          name={product.name}
-          categorySlug={product.categorySlug}
-          basePrice={product.price}
-          price3ml={product.price3ml}
-          price10ml={product.price10ml}
-          priceFullBottle={product.priceFullBottle}
-          description={product.description}
-        />
-
+      <ProductView
+        productId={product.id}
+        name={product.name}
+        categorySlug={product.categorySlug}
+        basePrice={product.price}
+        price3ml={product.price3ml}
+        price10ml={product.price10ml}
+        priceFullBottle={product.priceFullBottle}
+        description={product.description}
+        fallbackImageUrl={product.imageUrl}
+        images={images}
+      >
         {related.length > 0 && (
           <div className="mt-9">
             <div className="text-muted mb-3.5 text-xs font-bold tracking-wide">TAMBIÉN TE PUEDE GUSTAR</div>
@@ -94,7 +88,7 @@ export default async function ProductoPage({ params }: { params: Promise<{ id: s
             </div>
           </div>
         )}
-      </div>
+      </ProductView>
     </section>
   );
 }

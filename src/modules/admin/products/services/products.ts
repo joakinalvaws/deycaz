@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import type { Product, ProductImage } from "../types";
+import type { Product, ProductImage, ProductImageSizeTag } from "../types";
 
 export type ProductFilters = {
   onlyActive?: boolean;
@@ -65,7 +65,7 @@ export async function deleteProduct(id: number): Promise<void> {
 // ============================================================
 // Imágenes (product_images) — hoy products.image_url sigue siendo la
 // imagen que muestra el sitio público; se mantiene sincronizada acá al
-// marcar una imagen como principal (ver setPrimaryImage).
+// subir/reemplazar la imagen principal (ver uploadPrincipalImage).
 // ============================================================
 
 const STORAGE_BUCKET = "product-images";
@@ -115,17 +115,77 @@ export async function reorderProductImages(images: { id: number; sort_order: num
   if (error) throw error;
 }
 
-export async function setPrimaryImage(productId: number, imageId: number, url: string): Promise<void> {
+/** Sube directo a la imagen principal (subir = reemplazar y quedar como
+ * principal, sin pasos intermedios) — usado por la sección dedicada
+ * "Imagen principal" del admin, separada de la galería general. */
+export async function uploadPrincipalImage(productId: number, file: File): Promise<ProductImage> {
   const supabase = createClient();
-  const { error: unsetError } = await supabase
+
+  const { data: existing } = await supabase
     .from("product_images")
-    .update({ is_primary: false })
-    .eq("product_id", productId);
-  if (unsetError) throw unsetError;
+    .select("id")
+    .eq("product_id", productId)
+    .eq("is_primary", true)
+    .maybeSingle();
+  if (existing) {
+    await supabase.from("product_images").delete().eq("id", existing.id);
+  }
 
-  const { error: setError } = await supabase.from("product_images").update({ is_primary: true }).eq("id", imageId);
-  if (setError) throw setError;
+  const path = `${productId}/principal-${crypto.randomUUID()}-${file.name}`;
+  const { error: uploadError } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file);
+  if (uploadError) throw uploadError;
 
-  const { error: syncError } = await supabase.from("products").update({ image_url: url }).eq("id", productId);
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+
+  const { data, error } = await supabase
+    .from("product_images")
+    .insert({ product_id: productId, url: publicUrl, is_primary: true })
+    .select()
+    .single();
+  if (error) throw error;
+
+  const { error: syncError } = await supabase.from("products").update({ image_url: publicUrl }).eq("id", productId);
   if (syncError) throw syncError;
+
+  return data;
+}
+
+/** Sube (o reemplaza) la foto asociada a un tamaño específico — la que se
+ * muestra en la página del producto al elegir ese tamaño. A lo sumo una
+ * por tamaño por producto (la migración 0010 lo garantiza con un índice
+ * único; acá se borra la anterior antes de insertar la nueva). */
+export async function setSizeTagImage(
+  productId: number,
+  sizeTag: ProductImageSizeTag,
+  file: File,
+): Promise<ProductImage> {
+  const supabase = createClient();
+
+  const { data: existing } = await supabase
+    .from("product_images")
+    .select("id")
+    .eq("product_id", productId)
+    .eq("size_tag", sizeTag)
+    .maybeSingle();
+  if (existing) {
+    await supabase.from("product_images").delete().eq("id", existing.id);
+  }
+
+  const path = `${productId}/${sizeTag}-${crypto.randomUUID()}-${file.name}`;
+  const { error: uploadError } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file);
+  if (uploadError) throw uploadError;
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+
+  const { data, error } = await supabase
+    .from("product_images")
+    .insert({ product_id: productId, url: publicUrl, size_tag: sizeTag })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
 }

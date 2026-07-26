@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { Controller, useForm, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -58,8 +57,7 @@ export function ProductForm({ product }: { product?: Product }) {
     control,
     handleSubmit,
     watch,
-    setValue,
-    formState: { errors, isSubmitting, dirtyFields },
+    formState: { errors, isSubmitting },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: product
@@ -81,18 +79,6 @@ export function ProductForm({ product }: { product?: Product }) {
   });
 
   const onSale = watch("on_sale");
-  const price = watch("price");
-  const price3mlDirty = !!dirtyFields.price_3ml;
-  const price10mlDirty = !!dirtyFields.price_10ml;
-
-  // Sugiere 3ml/10ml a partir del precio de 5ml con la fórmula de siempre
-  // (70%/170%), pero solo mientras el admin no los haya tocado a mano — así
-  // un perfume que se sale de la fórmula general no pelea con el sistema.
-  useEffect(() => {
-    if (!price || price <= 0) return;
-    if (!price3mlDirty) setValue("price_3ml", Math.round(price * 0.7));
-    if (!price10mlDirty) setValue("price_10ml", Math.round(price * 1.7));
-  }, [price, price3mlDirty, price10mlDirty, setValue]);
 
   async function onSubmit(values: ProductFormValues) {
     try {
@@ -182,8 +168,8 @@ export function ProductForm({ product }: { product?: Product }) {
             </div>
           </div>
           <p className="text-muted-foreground -mt-2 text-xs">
-            3ml y 10ml se sugieren solos a partir del precio de 5ml (70% y 170%) — editalos si este perfume
-            no sigue esa fórmula.
+            Si dejás 3ml o 10ml vacío, ese tamaño simplemente no se ofrece en la página del producto — no
+            hay ningún cálculo automático.
           </p>
 
           <div className="flex flex-col gap-1.5">
@@ -210,11 +196,16 @@ export function ProductForm({ product }: { product?: Product }) {
 
           {onSale && (
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="original_price">Precio anterior (tachado)</Label>
+              <Label htmlFor="original_price">Precio anterior del decant de 5ml (tachado)</Label>
               <NullableNumberField control={control} name="original_price" id="original_price" />
               {errors.original_price && (
                 <p className="text-destructive text-sm">{errors.original_price.message}</p>
               )}
+              <p className="text-muted-foreground text-xs">
+                Es lo que costaba este mismo decant de 5ml antes de la oferta — misma escala que el
+                &quot;Precio 5ml&quot; de arriba. No pongas acá el precio del frasco completo (para eso está
+                &quot;Precio frasco entero&quot; en esta misma pestaña).
+              </p>
             </div>
           )}
         </TabsContent>

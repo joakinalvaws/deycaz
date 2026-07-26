@@ -25,18 +25,18 @@ export type ProductSizePricing = {
 };
 
 /**
- * Precio de un tamaño para un producto individual. 3ml/10ml usan el precio
- * propio del producto si está cargado; si no, caen a la fórmula vieja
- * (70%/170% del precio base) como valor por defecto. "full" (frasco
- * entero) devuelve `null` si el producto no tiene ese precio configurado —
- * quien llama debe ocultar esa opción en ese caso. El precio final y
- * autoritativo se recalcula siempre en el servidor dentro de `place_order`
- * (supabase/schema.sql), nunca se confía en este cálculo del cliente.
+ * Precio de un tamaño para un producto individual. Cada tamaño (3ml, 10ml,
+ * frasco entero) necesita su propio precio cargado en el producto — sin
+ * fórmula ni valor por defecto — devuelve `null` si no está configurado, y
+ * quien llama debe ocultar esa opción en ese caso (ver `PRODUCT_PAGE_SIZES`
+ * filtrado en `ProductDetail`). El precio final y autoritativo se recalcula
+ * siempre en el servidor dentro de `place_order` (supabase/schema.sql),
+ * nunca se confía en este cálculo del cliente.
  */
 export function getSizePrice(product: ProductSizePricing, size: Size): number | null {
   if (size === "5") return product.price;
-  if (size === "3") return product.price3ml ?? Math.round(product.price * 0.7);
-  if (size === "10") return product.price10ml ?? Math.round(product.price * 1.7);
+  if (size === "3") return product.price3ml ?? null;
+  if (size === "10") return product.price10ml ?? null;
   return product.priceFullBottle ?? null;
 }
 

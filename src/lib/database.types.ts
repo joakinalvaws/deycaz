@@ -156,6 +156,7 @@ export type Database = {
           url: string;
           sort_order: number;
           is_primary: boolean;
+          size_tag: "3" | "5" | "10" | "full" | null;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["product_images"]["Row"]> & {

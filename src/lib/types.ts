@@ -31,6 +31,16 @@ export type Testimonial = {
   imageUrl: string | null;
 };
 
+/** Foto de un producto — `sizeTag` no-null significa que es la foto a
+ * mostrar cuando el cliente elige ese tamaño en la página del producto;
+ * `isPrimary` es la del card (ya reflejada en `Product.imageUrl`); si
+ * ninguna de las dos, es una foto suelta de la galería general. */
+export type ProductImage = {
+  url: string;
+  sizeTag: Size | null;
+  isPrimary: boolean;
+};
+
 /** Item del carrito. El precio unitario es siempre el precio "de lista" del
  * tamaño (para items de combo, el precio plano de `FLAT_COMBO_SIZE_PRICE`,
  * sin descuento incrustado) — el descuento por nivel de combo se calcula y

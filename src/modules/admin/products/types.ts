@@ -16,11 +16,14 @@ export type Product = {
   created_at: string;
 };
 
+export type ProductImageSizeTag = "3" | "5" | "10" | "full";
+
 export type ProductImage = {
   id: number;
   product_id: number;
   url: string;
   sort_order: number;
   is_primary: boolean;
+  size_tag: ProductImageSizeTag | null;
   created_at: string;
 };

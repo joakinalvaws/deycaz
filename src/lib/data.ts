@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { Category, Product, Testimonial } from "./types";
+import type { Category, Product, ProductImage, Testimonial } from "./types";
 
 function mapProduct(row: {
   id: number;
@@ -132,5 +132,19 @@ export async function getTestimonials(): Promise<Testimonial[]> {
     stars: row.stars,
     text: row.text,
     imageUrl: row.image_url,
+  }));
+}
+
+export async function getProductImages(productId: number): Promise<ProductImage[]> {
+  const { data, error } = await supabase
+    .from("product_images")
+    .select("url, size_tag, is_primary, sort_order")
+    .eq("product_id", productId)
+    .order("sort_order", { ascending: true });
+  if (error) throw new Error(`No se pudieron cargar las imágenes del producto: ${error.message}`);
+  return (data ?? []).map((row) => ({
+    url: row.url,
+    sizeTag: row.size_tag,
+    isPrimary: row.is_primary,
   }));
 }

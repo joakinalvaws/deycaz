@@ -147,11 +147,11 @@ create policy "contact_messages_public_insert" on contact_messages
 -- Crea el pedido y sus items en una sola transacción, recalculando TODOS
 -- los precios y el costo de envío en el servidor (nunca confía en lo
 -- enviado desde el cliente). Reglas de precio:
---   - Item individual: usa el precio propio del tamaño si el producto lo
---     tiene cargado (price_3ml/price_10ml/price_full_bottle); si no,
---     3ml/10ml caen al valor por defecto base*0.7 / base*1.7 (redondeado).
---     'full' (frasco entero) exige que el producto tenga price_full_bottle
---     configurado, y nunca puede pedirse como parte de un combo.
+--   - Item individual: exige que el producto tenga cargado el precio propio
+--     de ese tamaño (price_3ml/price_10ml/price_full_bottle) — sin fórmula
+--     ni valor por defecto; si no está cargado, el pedido se rechaza (la
+--     página del producto ya oculta ese tamaño del selector). 'full'
+--     (frasco entero) nunca puede pedirse como parte de un combo.
 --   - Item de "Arma tu Combo" (is_combo=true): precio plano por tamaño
 --     (3ml=S/.30, 5ml=S/.45, 10ml=S/.75), sin descuento incrustado por
 --     unidad. El descuento se resta una sola vez sobre el subtotal total,
@@ -260,9 +260,15 @@ begin
       if (v_item->>'size') = 'full' and v_product.price_full_bottle is null then
         raise exception 'Este producto no tiene precio de frasco entero configurado';
       end if;
+      if (v_item->>'size') = '3' and v_product.price_3ml is null then
+        raise exception 'Este producto no tiene precio de 3ml configurado';
+      end if;
+      if (v_item->>'size') = '10' and v_product.price_10ml is null then
+        raise exception 'Este producto no tiene precio de 10ml configurado';
+      end if;
       v_unit_price := case (v_item->>'size')
-        when '3' then coalesce(v_product.price_3ml, round(v_product.price * 0.7))
-        when '10' then coalesce(v_product.price_10ml, round(v_product.price * 1.7))
+        when '3' then v_product.price_3ml
+        when '10' then v_product.price_10ml
         when 'full' then v_product.price_full_bottle
         else v_product.price
       end;
@@ -356,9 +362,16 @@ create table if not exists product_images (
   url         text not null,
   sort_order  int not null default 0,
   is_primary  boolean not null default false,
+  -- Etiqueta opcional: si está seteada, esta imagen es la que se muestra
+  -- en la página del producto al elegir ese tamaño (reemplaza a la
+  -- principal). Si es null, es una foto suelta de la galería general.
+  size_tag    text check (size_tag is null or size_tag in ('3', '5', '10', 'full')),
   created_at  timestamptz not null default now()
 );
 create index if not exists product_images_product_idx on product_images(product_id);
+-- A lo sumo una imagen por tamaño por producto.
+create unique index if not exists product_images_one_per_size_tag
+  on product_images(product_id, size_tag) where size_tag is not null;
 alter table product_images enable row level security;
 create policy "product_images_public_read" on product_images for select using (true);
 create policy "product_images_admin_all" on product_images for all using (is_admin()) with check (is_admin());

@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as productsService from "../services/products";
 import { compressImage } from "../services/imageCompression";
+import type { ProductImageSizeTag } from "../types";
 
 function imagesKey(productId: number) {
   return ["admin", "products", "images", productId] as const;
@@ -44,14 +45,27 @@ export function useReorderProductImages(productId: number) {
   });
 }
 
-export function useSetPrimaryImage(productId: number) {
+export function useUploadPrincipalImage(productId: number) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ imageId, url }: { imageId: number; url: string }) =>
-      productsService.setPrimaryImage(productId, imageId, url),
+    mutationFn: async (file: File) => {
+      const compressed = await compressImage(file);
+      return productsService.uploadPrincipalImage(productId, compressed);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: imagesKey(productId) });
       queryClient.invalidateQueries({ queryKey: ["admin", "products", "detail", productId] });
     },
+  });
+}
+
+export function useSetSizeTagImage(productId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ sizeTag, file }: { sizeTag: ProductImageSizeTag; file: File }) => {
+      const compressed = await compressImage(file);
+      return productsService.setSizeTagImage(productId, sizeTag, compressed);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: imagesKey(productId) }),
   });
 }

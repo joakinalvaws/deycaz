@@ -23,6 +23,8 @@ export function ProductDetail({
   price10ml,
   priceFullBottle,
   description,
+  size,
+  onSizeChange,
 }: {
   productId: number;
   name: string;
@@ -32,6 +34,10 @@ export function ProductDetail({
   price10ml: number | null;
   priceFullBottle: number | null;
   description: string | null;
+  // Controlado desde `ProductView` (no estado propio) — el tamaño elegido
+  // acá también decide qué foto se muestra en la columna de imagen.
+  size: Size;
+  onSizeChange: (size: Size) => void;
 }) {
   const pricing = { price: basePrice, price3ml, price10ml, priceFullBottle };
   const availableSizes = useMemo(() => {
@@ -39,7 +45,6 @@ export function ProductDetail({
     return PRODUCT_PAGE_SIZES.filter((sz) => getSizePrice(p, sz) !== null);
   }, [basePrice, price3ml, price10ml, priceFullBottle]);
 
-  const [size, setSize] = useState<Size>("5");
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
 
@@ -48,7 +53,7 @@ export function ProductDetail({
   return (
     <div>
       <div className="text-muted mb-2.5 text-[32px] font-extrabold">
-        S/. {formatPEN(currentPrice ?? basePrice)}.00
+        S/. {formatPEN(currentPrice ?? basePrice)}
       </div>
 
       <div className="text-muted mb-2.5 text-xs font-bold tracking-wide">TAMAÑO</div>
@@ -57,7 +62,7 @@ export function ProductDetail({
           <button
             key={sz}
             type="button"
-            onClick={() => setSize(sz)}
+            onClick={() => onSizeChange(sz)}
             className={`flex-1 border py-4 text-center ${
               size === sz ? "border-foreground bg-foreground text-white" : "border-border-strong bg-white"
             }`}
