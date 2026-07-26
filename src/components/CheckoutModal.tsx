@@ -12,7 +12,7 @@ import {
   type Provincia,
   type Distrito,
 } from "@/lib/ubigeo";
-import { WHATSAPP_ORDER_NUMBER } from "@/lib/constants";
+import { WHATSAPP_NUMBER } from "@/lib/constants";
 import { placeOrder } from "@/app/actions";
 import type { CartItem } from "@/lib/types";
 
@@ -214,7 +214,7 @@ export function CheckoutModal() {
     reset();
     // api.whatsapp.com directo (no wa.me): el short-link de wa.me corrompe
     // los emoji en su propio redirect antes de llegar al teléfono.
-    window.location.href = `https://api.whatsapp.com/send/?phone=${WHATSAPP_ORDER_NUMBER}&text=${encodeURIComponent(message)}&type=phone_number&app_absent=0`;
+    window.location.href = `https://api.whatsapp.com/send/?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}&type=phone_number&app_absent=0`;
   }
 
   return (
@@ -227,7 +227,7 @@ export function CheckoutModal() {
               <div className="text-lg font-bold">¡Ya casi está!</div>
               <div className="text-muted text-[13px]">Completa tus datos para confirmar tu pedido.</div>
             </div>
-            <button type="button" onClick={closeCheckout} className="bg-transparent text-lg">
+            <button type="button" onClick={closeCheckout} className="-m-2 bg-transparent p-2 text-lg">
               ✕
             </button>
           </div>

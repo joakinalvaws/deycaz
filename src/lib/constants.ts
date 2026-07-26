@@ -1,3 +1,6 @@
-// Número de WhatsApp de prueba para la confirmación de pedidos del checkout.
-// Cambiar aquí cuando tengan el número definitivo de producción.
-export const WHATSAPP_ORDER_NUMBER = "51936889160";
+// Número de WhatsApp para pedidos (checkout) y contacto general.
+export const WHATSAPP_NUMBER = "51924817553";
+export const WHATSAPP_DISPLAY = "+51 924 817 553";
+
+export const INSTAGRAM_URL = "https://www.instagram.com/deycaz.pe/";
+export const TIKTOK_URL = "https://www.tiktok.com/@deycaz.pe";

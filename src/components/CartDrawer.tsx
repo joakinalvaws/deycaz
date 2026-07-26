@@ -14,7 +14,7 @@ export function CartDrawer() {
       <div className="fixed top-0 right-0 bottom-0 z-151 flex w-full max-w-[400px] flex-col bg-white shadow-[-10px_0_40px_rgba(0,0,0,0.15)]">
         <div className="flex items-center justify-between border-b border-border px-6 py-5">
           <span className="text-[15px] font-bold">TU CARRITO ({items.reduce((a, c) => a + c.qty, 0)})</span>
-          <button type="button" onClick={closeCart} className="bg-transparent text-lg">
+          <button type="button" onClick={closeCart} className="-m-2 bg-transparent p-2 text-lg">
             ✕
           </button>
         </div>

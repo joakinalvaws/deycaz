@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import { getPromoProducts } from "@/lib/data";
 import { ProductCard } from "@/components/ProductCard";
 
-export const metadata: Metadata = { title: "Promociones — DEYCAZ" };
+export const revalidate = 300;
+
+export const metadata: Metadata = {
+  title: "Promociones",
+  description: "Ofertas por tiempo limitado en decants seleccionados. Precios especiales, cantidad limitada.",
+};
 
 export default async function PromocionesPage() {
   const products = await getPromoProducts();

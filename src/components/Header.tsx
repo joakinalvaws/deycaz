@@ -114,20 +114,20 @@ export function Header({ products }: { products: Product[] }) {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar perfume..."
-                className="mr-2 w-36 border border-border-strong bg-white px-3 py-2 text-[13px] text-foreground outline-none sm:w-56"
+                className="mr-2 w-24 border border-border-strong bg-white px-3 py-2 text-[13px] text-foreground outline-none sm:w-56"
               />
             )}
             <button
               type="button"
               aria-label="Buscar"
               onClick={() => setSearchOpen((v) => !v)}
-              className="bg-transparent text-2xl text-foreground"
+              className="-m-2 bg-transparent p-2 text-2xl text-foreground"
             >
               ⌕
             </button>
 
             {searchOpen && results.length > 0 && (
-              <div className="absolute top-full right-0 mt-2 w-72 border border-border bg-white p-2 shadow-[0_16px_40px_rgba(0,0,0,0.12)]">
+              <div className="absolute top-full right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] border border-border bg-white p-2 shadow-[0_16px_40px_rgba(0,0,0,0.12)] sm:w-72">
                 {results.map((r) => (
                   <button
                     key={r.id}
@@ -146,9 +146,9 @@ export function Header({ products }: { products: Product[] }) {
             )}
           </div>
 
-          <button type="button" aria-label="Carrito" onClick={toggleCart} className="relative bg-transparent text-2xl text-foreground">
+          <button type="button" aria-label="Carrito" onClick={toggleCart} className="relative -m-2 bg-transparent p-2 text-2xl text-foreground">
             ⛃
-            <span className="absolute -top-2 -right-2.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-white">
+            <span className="absolute top-0 right-0 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-white">
               {count}
             </span>
           </button>

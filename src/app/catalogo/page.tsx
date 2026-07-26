@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import { getCategories } from "@/lib/data";
 import { CategoryTile } from "@/components/CategoryTile";
 
-export const metadata: Metadata = { title: "Catálogo — DEYCAZ" };
+export const revalidate = 300;
+
+export const metadata: Metadata = {
+  title: "Catálogo",
+  description: "Explora nuestro catálogo de decants: nicho, diseñador, árabes, exclusivos y damas. Envío a todo el Perú.",
+};
 
 export default async function CatalogoPage() {
   const categories = await getCategories();

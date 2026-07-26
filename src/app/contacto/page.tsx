@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { ContactForm } from "@/components/ContactForm";
+import { WHATSAPP_NUMBER, WHATSAPP_DISPLAY, INSTAGRAM_URL, TIKTOK_URL } from "@/lib/constants";
 
-export const metadata: Metadata = { title: "Contacto — DEYCAZ" };
+export const metadata: Metadata = {
+  title: "Contacto",
+  description: "Escríbenos por WhatsApp, Instagram o el formulario. Te respondemos el mismo día.",
+};
 
 export default function ContactoPage() {
   return (
@@ -13,13 +17,27 @@ export default function ContactoPage() {
         </p>
         <div className="flex flex-col gap-2.5 text-[13px] text-[#3a3a38]">
           <div>
-            <strong>WhatsApp:</strong> +51 987 654 321
+            <strong>WhatsApp:</strong>{" "}
+            <a
+              href={`https://api.whatsapp.com/send/?phone=${WHATSAPP_NUMBER}&type=phone_number&app_absent=0`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-muted"
+            >
+              {WHATSAPP_DISPLAY}
+            </a>
           </div>
           <div>
-            <strong>Instagram:</strong> @deycaz.pe
+            <strong>Instagram:</strong>{" "}
+            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="hover:text-muted">
+              @deycaz.pe
+            </a>
           </div>
           <div>
-            <strong>TikTok:</strong> @deycaz.pe
+            <strong>TikTok:</strong>{" "}
+            <a href={TIKTOK_URL} target="_blank" rel="noopener noreferrer" className="hover:text-muted">
+              @deycaz.pe
+            </a>
           </div>
           <div>
             <strong>Horario:</strong> Lun–Sáb, 10am–8pm

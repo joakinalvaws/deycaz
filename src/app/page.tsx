@@ -8,6 +8,8 @@ import { CategoryTile } from "@/components/CategoryTile";
 import { Marquee } from "@/components/Marquee";
 import heroMasVendido from "@/assets/hero-mas-vendido.webp";
 
+export const revalidate = 300;
+
 export default async function HomePage() {
   const [bestSellers, categories, testimonials] = await Promise.all([
     getBestSellers(),

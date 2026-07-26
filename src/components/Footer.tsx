@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { INSTAGRAM_URL, TIKTOK_URL } from "@/lib/constants";
 
 export function Footer() {
   return (
@@ -51,8 +52,12 @@ export function Footer() {
           <div>
             <div className="mb-4 text-sm font-bold text-white">Síguenos</div>
             <div className="flex flex-col gap-2.5">
-              <a href="#" className="text-muted-2 text-[13px]">Instagram</a>
-              <a href="#" className="text-muted-2 text-[13px]">TikTok</a>
+              <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="text-muted-2 text-[13px] hover:text-white">
+                Instagram
+              </a>
+              <a href={TIKTOK_URL} target="_blank" rel="noopener noreferrer" className="text-muted-2 text-[13px] hover:text-white">
+                TikTok
+              </a>
             </div>
           </div>
         </div>
