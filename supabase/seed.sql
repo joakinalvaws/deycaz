@@ -3,7 +3,7 @@
 -- Supabase o tu futuro panel admin.
 
 insert into categories (slug, name, subtitle, desde, sort_order) values
-  ('nicho',      'Nicho',      'Xerjoff · Tom Ford · Parfums de Marly', 80,   1),
+  ('nicho',      'Nicho',      'Xerjoff · Tom Ford', 80,   1),
   ('disenador',  'Diseñador',  'Valentino · Dior · Armani · YSL',       30,   2),
   ('arabes',     'Árabes',     'Lattafa · Rasasi · Afnan',              25,   3),
   ('exclusivos', 'Exclusivos', 'Louis Vuitton · Creed · Tom Ford',      135,  4),

@@ -412,7 +412,7 @@ export function ComboBuilder({
                   key={c.slug}
                   type="button"
                   onClick={() => selectCategory(c.slug)}
-                  className={`border px-2.5 py-2.5 text-center md:px-4 md:py-4 ${
+                  className={`rounded-md border px-2.5 py-2.5 text-center md:px-4 md:py-4 ${
                     category === c.slug
                       ? "border-foreground bg-foreground text-white"
                       : "border-[#e2e0dc] bg-white"
@@ -437,7 +437,7 @@ export function ComboBuilder({
                     key={sz}
                     type="button"
                     onClick={() => switchTo(category, sz)}
-                    className={`border px-2.5 py-2.5 text-center md:px-4 md:py-4 ${
+                    className={`rounded-md border px-2.5 py-2.5 text-center md:px-4 md:py-4 ${
                       size === sz ? "border-foreground bg-foreground text-white" : "border-[#e2e0dc] bg-white"
                     }`}
                   >
@@ -528,27 +528,36 @@ export function ComboBuilder({
               </div>
 
               <div className="lg:hidden">
-                <div className="fixed right-5 bottom-5 z-40 flex items-stretch">
-                  {discount > 0 && (
-                    <span className="bg-success flex items-center rounded-l-full px-4 text-sm font-bold text-white">
-                      -S/. {formatPEN(discount)}
-                    </span>
-                  )}
+                <div className="fixed right-5 bottom-5 z-40 h-14 w-14">
+                  {/* Total: sale desde atrás de la burbuja hacia la izquierda
+                      (z-0, la burbuja la tapa parcialmente por encima). */}
+                  <span className="absolute top-1/2 right-6 z-0 -translate-y-1/2 rounded-md bg-foreground py-1.5 pr-4 pl-2.5 text-[11px] font-bold whitespace-nowrap text-white shadow-md">
+                    S/. {formatPEN(total)}
+                  </span>
+
                   <button
                     type="button"
                     onClick={() => setMobileSummaryOpen(true)}
-                    className={`relative flex h-14 items-center gap-2 bg-[#e8e6e1] px-5 text-foreground shadow-lg ${
-                      discount > 0 ? "rounded-r-full" : "rounded-full"
-                    }`}
+                    className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full bg-[#e8e6e1] text-2xl shadow-lg"
                   >
-                    <span className="text-2xl">🛒</span>
-                    <span className="text-sm font-bold">S/. {formatPEN(total)}</span>
-                    {totalCount > 0 && (
-                      <span className="bg-success absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold text-white">
-                        {totalCount}
-                      </span>
-                    )}
+                    🛒
                   </button>
+
+                  {/* Descuento: rectángulo con esquinas redondeadas arriba a
+                      la derecha, comiendo un poco el borde de la burbuja. */}
+                  {discount > 0 && (
+                    <span className="bg-success absolute -top-2 -right-2.5 z-20 rounded-md px-1.5 py-1 text-[10px] font-bold whitespace-nowrap text-white shadow">
+                      -S/. {formatPEN(discount)}
+                    </span>
+                  )}
+
+                  {/* Cantidad de items: circulito chico abajo a la derecha,
+                      se mezcla con la burbuja pero casi no se nota. */}
+                  {totalCount > 0 && (
+                    <span className="absolute -right-0.5 -bottom-0.5 z-20 flex h-4.5 w-4.5 items-center justify-center rounded-full border border-[#d8d6d2] bg-white text-[10px] font-bold text-foreground">
+                      {totalCount}
+                    </span>
+                  )}
                 </div>
 
                 {mobileSummaryOpen && (
