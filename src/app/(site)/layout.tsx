@@ -31,7 +31,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <Footer />
       <CartDrawer />
       <CheckoutModal />
-      <Toaster />
+      <Toaster position="top-center" />
     </CartProvider>
   );
 }

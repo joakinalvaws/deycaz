@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import { useCart } from "@/context/CartContext";
 
 export function QuickAddButton({
@@ -30,6 +31,9 @@ export function QuickAddButton({
           unitPrice: basePrice,
           qty: 1,
         });
+        // El carrito ya no se abre solo al agregar (ver CartContext.tsx) —
+        // este toast es la única confirmación visible acá.
+        toast.success("Producto agregado al carrito", { duration: 1500 });
       }}
       className={
         className ??

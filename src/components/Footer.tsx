@@ -38,9 +38,12 @@ export function Footer() {
         </div>
       </section>
 
-      <footer className="bg-foreground px-6 pt-10 pb-10 md:px-10">
-        <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-x-8 gap-y-10 border-t border-[#232321] pt-10 md:grid-cols-[1.3fr_1fr_1fr]">
-          <div className="col-span-2 md:col-span-1">
+      <footer className="bg-foreground px-6 pt-6 pb-6 md:px-10 md:pt-10 md:pb-10">
+        <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-x-8 gap-y-6 border-t border-[#232321] pt-6 md:grid-cols-[1.3fr_1fr_1fr] md:gap-y-10 md:pt-10">
+          {/* Se oculta en mobile (ocupaba espacio y alargaba el footer sin
+              aportar nada que no esté ya en el header) — en desktop se
+              mantiene igual que antes. */}
+          <div className="hidden md:col-span-1 md:block">
             <div className="font-serif mb-3 text-2xl font-bold tracking-[3px] text-white">DEYCAZ</div>
             <p className="text-[13px] leading-relaxed text-[#807e7a]">
               Productos de calidad para la vida moderna.
@@ -93,7 +96,7 @@ export function Footer() {
 
         {/* "Términos y políticas" queda como texto, no link: todavía no
             existe esa página en el sitio. */}
-        <div className="mx-auto mt-10 flex max-w-[1400px] flex-col items-center gap-2 border-t border-[#232321] pt-6 text-center text-[11px] text-[#807e7a] sm:flex-row sm:justify-between">
+        <div className="mx-auto mt-6 flex max-w-[1400px] flex-col items-center gap-2 border-t border-[#232321] pt-6 text-center text-[11px] text-[#807e7a] sm:flex-row sm:justify-between md:mt-10">
           <span>© 2026 DEYCAZ</span>
           <span>Términos y políticas</span>
         </div>

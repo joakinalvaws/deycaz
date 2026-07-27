@@ -46,9 +46,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  // No abre el drawer del carrito como efecto secundario — el usuario lo
+  // pidió explícitamente: la única confirmación de "se agregó" debe ser el
+  // toast flotante (ver QuickAddButton.tsx y ProductDetail.tsx), el carrito
+  // solo se abre si el usuario lo pide (ícono del header) o si el flujo va
+  // directo a checkout (openCheckout se llama aparte en esos casos).
   const addItems = useCallback((inputs: AddItemInput[]) => {
     cartStore.addItems(inputs);
-    setIsOpen(true);
   }, []);
 
   const addItem = useCallback((input: AddItemInput) => addItems([input]), [addItems]);
