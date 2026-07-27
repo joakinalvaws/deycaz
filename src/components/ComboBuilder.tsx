@@ -537,11 +537,11 @@ export function ComboBuilder({
 
               <div className="lg:hidden">
                 <div className="fixed right-5 bottom-5 z-40 h-14 w-14">
-                  {/* Total: badge negro a la izquierda de la burbuja, con un
-                      pequeño espacio entre ambos (right-16: el borde derecho
-                      del badge queda un poco antes de x=0, o sea antes del
-                      borde del círculo — nada de texto queda tapado). */}
-                  <span className="absolute top-1/2 right-16 z-0 -translate-y-1/2 rounded-md bg-foreground py-1.5 pr-4 pl-2.5 text-[11px] font-bold whitespace-nowrap text-white shadow-md">
+                  {/* Total: pegado a la burbuja (right-12 solapa ~8px con el
+                      círculo, sin separarse), pero ese solape cae dentro del
+                      padding derecho del badge (pr-4=16px) — no en el
+                      número — así el monto no queda rozando el borde. */}
+                  <span className="absolute top-1/2 right-12 z-0 -translate-y-1/2 rounded-md bg-foreground py-1.5 pr-4 pl-2.5 text-[11px] font-bold whitespace-nowrap text-white shadow-md">
                     S/. {formatWholeSoles(total)}
                   </span>
 
