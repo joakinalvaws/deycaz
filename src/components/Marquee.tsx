@@ -1,4 +1,7 @@
-const MESSAGE = "ENVÍOS A TODO EL PERÚ  |  DELIVERY GRATIS + S/. 250";
+// "EN LIMA" es a propósito: el umbral de envío gratis (FREE_SHIPPING_THRESHOLD
+// en shipping.ts) solo aplica a lima_delivery — por Shalom el envío en tienda
+// siempre es S/.0, sin importar el monto (ver FreeShippingSummary.tsx).
+const MESSAGE = "ENVÍOS A TODO EL PERÚ  |  DELIVERY GRATIS EN LIMA + S/. 250";
 
 // La animación va de 0% a -50%: para que el loop sea invisible, el ancho
 // total del contenido (REPEAT_COUNT copias) tiene que ser al menos el doble

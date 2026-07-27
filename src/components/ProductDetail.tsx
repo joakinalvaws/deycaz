@@ -1,11 +1,24 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { useCart } from "@/context/CartContext";
 import { PRODUCT_PAGE_SIZES, getSizePrice, formatPEN, type Size } from "@/lib/pricing";
+import { Collapsible, CollapsibleTrigger, CollapsiblePanel } from "@/components/ui/collapsible";
 
-const GENERIC_DESCRIPTION =
-  "Decant 100% original, envasado y sellado con cuidado. Ideal para descubrir tu fragancia antes de invertir en el frasco completo.";
+const NO_DESCRIPTION_FALLBACK = "Descripción disponible próximamente.";
+
+// Texto fijo, igual para todos los productos — no depende de la base de
+// datos, por eso vive acá como constante y no en el admin.
+const SHIPPING_RETURNS_TEXT = `Envíos:
+Realizamos envíos a todo el Perú.
+Lima: delivery a domicilio.
+Provincias: envíos mediante la agencia SHALOM, con código de seguimiento.
+Los tiempos de entrega pueden variar según el destino y la agencia de transporte.
+
+Retornos y Devoluciones:
+Por tratarse de productos de uso personal, no aceptamos devoluciones si el pedido recibido corresponde correctamente a lo solicitado por el cliente.
+En caso de existir algún error por nuestra parte, realizamos el cambio del producto de manera inmediata, asumiendo la solución correspondiente.`;
 
 const SIZE_LABEL: Record<Size, string> = {
   "3": "3ML",
@@ -13,6 +26,11 @@ const SIZE_LABEL: Record<Size, string> = {
   "10": "10ML",
   full: "FRASCO",
 };
+
+// Espeja MAX_QTY_PER_LINE de src/app/actions.ts (y su copia en la migración
+// SQL de place_order) — sin este tope, el stepper permite armar una cantidad
+// que el servidor va a rechazar igual, con un error mucho menos claro.
+const MAX_QTY_PER_LINE = 50;
 
 export function ProductDetail({
   productId,
@@ -45,10 +63,30 @@ export function ProductDetail({
     return PRODUCT_PAGE_SIZES.filter((sz) => getSizePrice(p, sz) !== null);
   }, [basePrice, price3ml, price10ml, priceFullBottle]);
 
-  const [added, setAdded] = useState(false);
-  const { addItem } = useCart();
+  const [qty, setQty] = useState(1);
+  // Un solo lock para los dos botones: ambos disparan el mismo addItem, y
+  // un timer compartido evita una carrera si se clickea uno y después el
+  // otro dentro de la ventana de 2s.
+  const [locked, setLocked] = useState(false);
+  const { addItem, closeCart, openCheckout } = useCart();
 
   const currentPrice = getSizePrice(pricing, size);
+
+  function handleAdd(openCheckoutAfter: boolean) {
+    if (currentPrice == null || locked) return;
+    addItem({ productId, name, categorySlug, size, unitPrice: currentPrice, qty });
+    toast.success("Producto agregado al carrito");
+    setLocked(true);
+    setTimeout(() => setLocked(false), 2000);
+    if (openCheckoutAfter) {
+      // addItem ya abrió el CartDrawer (mismo efecto secundario que "Agregar
+      // al carrito" solo) — hay que cerrarlo antes de abrir el checkout, si
+      // no quedan los dos overlays abiertos a la vez. Mismo patrón que ya
+      // usa el botón "CONFIRMAR COMPRA" de CartDrawer.tsx.
+      closeCart();
+      openCheckout();
+    }
+  }
 
   return (
     <div>
@@ -73,29 +111,64 @@ export function ProductDetail({
         ))}
       </div>
 
+      <div className="mb-4 flex gap-3">
+        <div className="flex items-center gap-2.5 border border-border-strong px-1">
+          <button
+            type="button"
+            aria-label="Reducir cantidad"
+            onClick={() => setQty((q) => Math.max(1, q - 1))}
+            className="w-8 bg-transparent text-base"
+          >
+            −
+          </button>
+          <span className="w-5 text-center text-sm">{qty}</span>
+          <button
+            type="button"
+            aria-label="Aumentar cantidad"
+            onClick={() => setQty((q) => Math.min(MAX_QTY_PER_LINE, q + 1))}
+            className="w-8 bg-transparent text-base"
+          >
+            +
+          </button>
+        </div>
+        <button
+          type="button"
+          disabled={locked}
+          onClick={() => handleAdd(false)}
+          className="flex-1 bg-foreground py-4.5 text-sm font-bold tracking-wide text-white disabled:cursor-not-allowed disabled:bg-border-strong disabled:text-muted-2"
+        >
+          AGREGAR AL CARRITO
+        </button>
+      </div>
+
       <button
         type="button"
-        onClick={() => {
-          if (currentPrice == null) return;
-          addItem({
-            productId,
-            name,
-            categorySlug,
-            size,
-            unitPrice: currentPrice,
-            qty: 1,
-          });
-          setAdded(true);
-          setTimeout(() => setAdded(false), 1500);
-        }}
-        className="mb-9 w-full bg-foreground py-4.5 text-sm font-bold tracking-wide text-white"
+        disabled={locked}
+        onClick={() => handleAdd(true)}
+        className="mb-9 w-full bg-[#00c164] py-4.5 text-sm font-bold tracking-wide text-white disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {added ? "AGREGADO ✓" : "AGREGAR AL CARRITO"}
+        OBTENER AHORA
       </button>
 
-      <p className="text-muted border-t border-border pt-6 text-sm leading-relaxed">
-        {description || GENERIC_DESCRIPTION}
-      </p>
+      <div className="border-t border-border">
+        <Collapsible defaultOpen className="border-b border-border py-5">
+          <CollapsibleTrigger>
+            <span className="text-sm font-bold tracking-wide">Producto</span>
+          </CollapsibleTrigger>
+          <CollapsiblePanel className="text-muted pt-4 text-sm leading-relaxed whitespace-pre-line">
+            {description || NO_DESCRIPTION_FALLBACK}
+          </CollapsiblePanel>
+        </Collapsible>
+
+        <Collapsible defaultOpen={false} className="py-5">
+          <CollapsibleTrigger>
+            <span className="text-sm font-bold tracking-wide">Envíos y Devoluciones</span>
+          </CollapsibleTrigger>
+          <CollapsiblePanel className="text-muted pt-4 text-sm leading-relaxed whitespace-pre-line">
+            {SHIPPING_RETURNS_TEXT}
+          </CollapsiblePanel>
+        </Collapsible>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,14 @@
 import Link from "next/link";
 import { INSTAGRAM_URL, TIKTOK_URL } from "@/lib/constants";
+import { Collapsible, CollapsibleTrigger, CollapsiblePanel } from "@/components/ui/collapsible";
+
+const FOOTER_LINKS = [
+  { href: "/", label: "Inicio" },
+  { href: "/catalogo", label: "Catálogo" },
+  { href: "/promociones", label: "Promociones" },
+  { href: "/combo", label: "Arma tu Combo" },
+  { href: "/contacto", label: "Contacto" },
+];
 
 export function Footer() {
   return (
@@ -40,13 +49,33 @@ export function Footer() {
             </p>
           </div>
           <div>
-            <div className="mb-4 text-sm font-bold text-white">Categorías</div>
-            <div className="flex flex-col gap-2.5">
-              <Link href="/" className="text-muted-2 text-[13px]">Inicio</Link>
-              <Link href="/catalogo" className="text-muted-2 text-[13px]">Catálogo</Link>
-              <Link href="/promociones" className="text-muted-2 text-[13px]">Promociones</Link>
-              <Link href="/combo" className="text-muted-2 text-[13px]">Arma tu Combo</Link>
-              <Link href="/contacto" className="text-muted-2 text-[13px]">Contacto</Link>
+            {/* Desktop: siempre visible, como antes. Mobile: desplegable
+                cerrado (mismo criterio que el drawer de Header.tsx — dos
+                bloques JSX separados en vez de un único bloque con lógica
+                condicional de apertura por breakpoint). */}
+            <div className="hidden md:block">
+              <div className="mb-4 text-sm font-bold text-white">Categorías</div>
+              <div className="flex flex-col gap-2.5">
+                {FOOTER_LINKS.map((l) => (
+                  <Link key={l.href} href={l.href} className="text-muted-2 text-[13px]">
+                    {l.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+            <div className="md:hidden">
+              <Collapsible defaultOpen={false}>
+                <CollapsibleTrigger>
+                  <span className="text-sm font-bold text-white">Categorías</span>
+                </CollapsibleTrigger>
+                <CollapsiblePanel className="flex flex-col gap-2.5 pt-4">
+                  {FOOTER_LINKS.map((l) => (
+                    <Link key={l.href} href={l.href} className="text-muted-2 text-[13px]">
+                      {l.label}
+                    </Link>
+                  ))}
+                </CollapsiblePanel>
+              </Collapsible>
             </div>
           </div>
           <div>
@@ -60,6 +89,13 @@ export function Footer() {
               </a>
             </div>
           </div>
+        </div>
+
+        {/* "Términos y políticas" queda como texto, no link: todavía no
+            existe esa página en el sitio. */}
+        <div className="mx-auto mt-10 flex max-w-[1400px] flex-col items-center gap-2 border-t border-[#232321] pt-6 text-center text-[11px] text-[#807e7a] sm:flex-row sm:justify-between">
+          <span>© 2026 DEYCAZ</span>
+          <span>Términos y políticas</span>
         </div>
       </footer>
     </>

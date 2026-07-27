@@ -50,11 +50,15 @@ export function buildOrderWhatsAppMessage(params: WhatsAppOrderMessageParams): s
   if (params.shippingMethod === "shalom_provincia") {
     lines.push(`🏢 Agencia Shalom: ${params.shalomAgency}`);
   }
-  lines.push(
-    "",
-    "✅ Confirmo que mis datos y dirección son correctos",
-    "✅ Confirmo que recibiré y pagaré el pedido contra entrega",
-  );
+  lines.push("", "✅ Confirmo que mis datos y dirección son correctos");
+  // Solo en Lima el pedido se "recibe contra entrega" en la puerta — por
+  // Shalom el cliente lo recoge en agencia y paga el flete ahí, así que
+  // confirmar "recibiré y pagaré contra entrega" sería falso en ese caso.
+  if (params.shippingMethod === "lima_delivery") {
+    lines.push("✅ Confirmo que recibiré y pagaré el pedido contra entrega");
+  } else {
+    lines.push("✅ Confirmo que recogeré mi pedido en la agencia Shalom y pagaré el flete correspondiente");
+  }
   return lines.join("\n");
 }
 

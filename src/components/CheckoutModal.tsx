@@ -518,7 +518,7 @@ export function CheckoutModal() {
               onClick={handleSubmit}
               className="w-full bg-foreground py-4 text-sm font-bold tracking-wide text-white disabled:cursor-not-allowed disabled:bg-border-strong disabled:text-muted-2"
             >
-              {submitting ? "Enviando..." : `Paga al recibir — S/. ${formatPEN(total)}`}
+              {submitting ? "Enviando..." : `Confirmar pedido — S/. ${formatPEN(total)}`}
             </button>
             <p className="text-muted-2 mt-3 text-center text-xs">100% confiables — se coordina por WhatsApp</p>
           </div>

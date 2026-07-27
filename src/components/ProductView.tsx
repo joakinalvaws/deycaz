@@ -70,22 +70,28 @@ export function ProductView({
 
   return (
     <>
-      <div className="flex gap-3">
+      {/* Mismo patrón order-1/order-2 + md:order-* que el hero de home
+          (src/app/(site)/page.tsx): un solo JSX, se invierte el orden
+          visual por breakpoint. Mobile: imagen arriba, miniaturas abajo en
+          fila con scroll horizontal. Desktop (md:, mismo breakpoint que ya
+          usa el grid de esta página en producto/[id]/page.tsx): miniaturas
+          en columna a la izquierda, como antes. */}
+      <div className="flex flex-col gap-3 md:flex-row">
         {thumbnails.length > 0 && (
-          <div className="flex max-h-[520px] w-14 flex-none flex-col gap-2 overflow-y-auto sm:w-20">
+          <div className="order-2 flex w-full flex-row gap-2 overflow-x-auto md:order-1 md:max-h-[520px] md:w-20 md:flex-none md:flex-col md:overflow-x-visible md:overflow-y-auto">
             {thumbnails.map((url, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => setPreviewUrl(url)}
-                className="border-border-strong relative aspect-square w-full flex-none overflow-hidden border bg-cream"
+                className="border-border-strong relative aspect-square w-16 flex-none overflow-hidden border bg-cream md:w-full"
               >
                 <ProductImage src={url} alt={name} sizes="80px" />
               </button>
             ))}
           </div>
         )}
-        <div className="relative aspect-square min-w-0 flex-1 bg-cream">
+        <div className="relative order-1 aspect-square min-w-0 bg-cream md:order-2 md:flex-1">
           <ProductImage src={mainImageUrl} alt={name} sizes="(min-width: 768px) 50vw, 100vw" priority />
         </div>
       </div>

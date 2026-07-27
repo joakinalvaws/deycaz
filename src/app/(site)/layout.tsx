@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CartDrawer } from "@/components/CartDrawer";
 import { CheckoutModal } from "@/components/CheckoutModal";
+import { Toaster } from "@/components/ui/sonner";
 import { getCategories, getProductSearchIndex } from "@/lib/data";
 
 // Catálogo cambia poco minuto a minuto — servir HTML cacheado (ISR) en vez
@@ -30,6 +31,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <Footer />
       <CartDrawer />
       <CheckoutModal />
+      <Toaster />
     </CartProvider>
   );
 }
