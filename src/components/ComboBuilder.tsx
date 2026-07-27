@@ -115,7 +115,10 @@ export function ComboBuilder({
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
   const { addItems, openCheckout, discountedSubtotal } = useCart();
 
-  const comboCategories = categories.filter((c) => c.slug !== "promos");
+  // "damas" queda afuera de Arma tu Combo a pedido explícito del usuario —
+  // el resto del sitio (catálogo, header, footer) sigue mostrándola normal,
+  // esto es solo para esta selección.
+  const comboCategories = categories.filter((c) => c.slug !== "promos" && c.slug !== "damas");
 
   const pool = useMemo(() => {
     if (!category) return [];
