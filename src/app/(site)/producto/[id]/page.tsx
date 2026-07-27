@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAllProducts, getProductById, getProductImages } from "@/lib/data";
+import { getAllProducts, getProductById, getProductImages, getProductsByCategory } from "@/lib/data";
 import { ProductImage } from "@/components/ProductImage";
 import { ProductView } from "@/components/ProductView";
 import { formatPEN } from "@/lib/pricing";
@@ -35,10 +35,14 @@ export default async function ProductoPage({ params }: { params: Promise<{ id: s
   const product = await getProductById(productId);
   if (!product) notFound();
 
-  const [allProducts, images] = await Promise.all([getAllProducts(), getProductImages(productId)]);
-  const related = allProducts
-    .filter((p) => p.categorySlug === product.categorySlug && p.id !== product.id)
-    .slice(0, 4);
+  // Los relacionados son siempre de la misma categoría, así que se pide esa
+  // categoría y no el catálogo completo (que después se filtraba en
+  // memoria para quedarse con 4).
+  const [sameCategory, images] = await Promise.all([
+    getProductsByCategory(product.categorySlug),
+    getProductImages(productId),
+  ]);
+  const related = sameCategory.filter((p) => p.id !== product.id).slice(0, 4);
 
   const productJsonLd = {
     "@context": "https://schema.org",

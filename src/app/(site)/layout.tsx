@@ -3,7 +3,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CartDrawer } from "@/components/CartDrawer";
 import { CheckoutModal } from "@/components/CheckoutModal";
-import { getAllProducts, getCategories } from "@/lib/data";
+import { getCategories, getProductSearchIndex } from "@/lib/data";
 
 // Catálogo cambia poco minuto a minuto — servir HTML cacheado (ISR) en vez
 // de re-renderizar en cada request es mucho más rápido y más amigable con
@@ -12,7 +12,10 @@ import { getAllProducts, getCategories } from "@/lib/data";
 export const revalidate = 300;
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const [products, categories] = await Promise.all([getAllProducts(), getCategories()]);
+  // Solo el índice de búsqueda (id/nombre/precio), no el catálogo entero:
+  // este layout envuelve todas las páginas, así que lo que se le pase al
+  // header viaja en el RSC de cada una.
+  const [products, categories] = await Promise.all([getProductSearchIndex(), getCategories()]);
 
   return (
     <CartProvider>

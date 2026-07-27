@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/context/CartContext";
-import type { Category, Product } from "@/lib/types";
+import type { Category, ProductSearchEntry } from "@/lib/types";
 import { formatPEN } from "@/lib/pricing";
 
 const NAV = [
@@ -21,7 +21,13 @@ function catalogLabel(c: Category) {
   return `Perfumes ${c.name}`;
 }
 
-export function Header({ products, categories }: { products: Product[]; categories: Category[] }) {
+export function Header({
+  products,
+  categories,
+}: {
+  products: ProductSearchEntry[];
+  categories: Category[];
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { count, toggleCart } = useCart();
@@ -42,10 +48,17 @@ export function Header({ products, categories }: { products: Product[]; categori
   // todos los tamaños mide más que el propio header de una sola fila). Al
   // bajar: se oculta apenas sale de la vista. Al subir: reaparece con fondo
   // blanco. Sin transición/animación — el cambio es instantáneo.
+  // El evento `scroll` dispara decenas de veces por segundo; el estado del
+  // header solo puede cambiar una vez por frame pintado. Se agrupa el
+  // trabajo en un requestAnimationFrame para no encolar un render de React
+  // por cada evento (React los batchea, pero igual corría el handler y los
+  // setState en cada uno).
   useEffect(() => {
     let lastY = window.scrollY;
+    let frame = 0;
 
-    function onScroll() {
+    function update() {
+      frame = 0;
       const y = window.scrollY;
       const nowAtTop = y < 8;
       setAtTop(nowAtTop);
@@ -59,9 +72,17 @@ export function Header({ products, categories }: { products: Product[]; categori
       lastY = y;
     }
 
-    onScroll();
+    function onScroll() {
+      if (frame) return;
+      frame = requestAnimationFrame(update);
+    }
+
+    update();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, []);
 
   // Cierra el menú mobile al cambiar de página — ajustado durante el

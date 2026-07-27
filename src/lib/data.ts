@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { Category, Product, ProductImage, Testimonial } from "./types";
+import type { Category, Product, ProductImage, ProductSearchEntry, Testimonial } from "./types";
 
 function mapProduct(row: {
   id: number;
@@ -70,6 +70,18 @@ export async function getAllProducts(): Promise<Product[]> {
     .order("id", { ascending: true });
   if (error) throw new Error(`No se pudieron cargar los productos: ${error.message}`);
   return (data ?? []).map(mapProduct);
+}
+
+/** Solo id/nombre/precio, para el buscador del header — que está en el
+ * layout y por lo tanto se serializa en el RSC de todas las páginas. Traer
+ * el producto completo ahí es payload muerto que crece con el catálogo. */
+export async function getProductSearchIndex(): Promise<ProductSearchEntry[]> {
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, name, price")
+    .order("id", { ascending: true });
+  if (error) throw new Error(`No se pudo cargar el buscador: ${error.message}`);
+  return data ?? [];
 }
 
 export async function getProductById(id: number): Promise<Product | null> {

@@ -23,6 +23,13 @@ export type Product = {
   description: string | null;
 };
 
+/** Lo mínimo que necesita el buscador del header: nombre para filtrar,
+ * precio para mostrar, id para navegar. Este arreglo viaja en el RSC de
+ * TODAS las páginas del sitio (el header vive en el layout), así que mandar
+ * el `Product` completo era pagar ~12 campos por producto en cada página
+ * para usar 3. */
+export type ProductSearchEntry = Pick<Product, "id" | "name" | "price">;
+
 export type Testimonial = {
   id: number;
   name: string;

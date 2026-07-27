@@ -32,8 +32,12 @@ export function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+      {/* Los maxLength espejan los límites de `submitContact` y los
+          `check (char_length(...))` de la tabla — así el corte se ve al
+          tipear en vez de rebotar recién al enviar. */}
       <input
         required
+        maxLength={200}
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="Nombre completo"
@@ -42,6 +46,7 @@ export function ContactForm() {
       <input
         required
         type="email"
+        maxLength={200}
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="Email"
@@ -49,6 +54,7 @@ export function ContactForm() {
       />
       <textarea
         required
+        maxLength={2000}
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Mensaje"

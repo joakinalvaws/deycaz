@@ -58,8 +58,15 @@ export async function updateProduct(id: number, input: Partial<ProductInput>): P
 
 export async function deleteProduct(id: number): Promise<void> {
   const supabase = createClient();
+
+  // `product_images` cae sola por `on delete cascade`, pero los archivos del
+  // bucket no: hay que juntar las URLs antes de que desaparezcan las filas.
+  const { data: images } = await supabase.from("product_images").select("url").eq("product_id", id);
+
   const { error } = await supabase.from("products").delete().eq("id", id);
   if (error) throw error;
+
+  await Promise.all((images ?? []).map((img) => removeStorageObject(img.url)));
 }
 
 // ============================================================
@@ -69,6 +76,42 @@ export async function deleteProduct(id: number): Promise<void> {
 // ============================================================
 
 const STORAGE_BUCKET = "product-images";
+
+/** El nombre original del archivo va dentro de la ruta de Storage, y ahí un
+ * espacio, una tilde o un `/` terminan en URLs raras o rutas partidas. Se
+ * normaliza a algo plano y se corta, que el prefijo UUID ya garantiza que
+ * sea único. */
+function safeFileName(name: string): string {
+  const normalized = name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-")
+    .toLowerCase();
+  return normalized.slice(-60) || "imagen";
+}
+
+/** Ruta dentro del bucket a partir de la URL pública guardada en la fila —
+ * es lo único que tenemos para poder borrar el archivo, porque
+ * `product_images` guarda la URL completa y no el path. */
+function storagePathFromPublicUrl(url: string): string | null {
+  const marker = `/storage/v1/object/public/${STORAGE_BUCKET}/`;
+  const index = url.indexOf(marker);
+  if (index === -1) return null;
+  return decodeURIComponent(url.slice(index + marker.length));
+}
+
+/** Borra el archivo del bucket. Nunca tira: si el objeto ya no está (o la
+ * URL es de otro lado), el borrado de la fila igual tiene que completarse —
+ * un huérfano en Storage es molesto, una imagen que no se puede borrar del
+ * admin lo es más. */
+async function removeStorageObject(url: string): Promise<void> {
+  const path = storagePathFromPublicUrl(url);
+  if (!path) return;
+  const supabase = createClient();
+  const { error } = await supabase.storage.from(STORAGE_BUCKET).remove([path]);
+  if (error) console.error("No se pudo borrar la imagen del bucket:", path, error.message);
+}
 
 export async function listProductImages(productId: number): Promise<ProductImage[]> {
   const supabase = createClient();
@@ -83,7 +126,7 @@ export async function listProductImages(productId: number): Promise<ProductImage
 
 export async function uploadProductImage(productId: number, file: File): Promise<ProductImage> {
   const supabase = createClient();
-  const path = `${productId}/${crypto.randomUUID()}-${file.name}`;
+  const path = `${productId}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
 
   const { error: uploadError } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file);
   if (uploadError) throw uploadError;
@@ -103,16 +146,29 @@ export async function uploadProductImage(productId: number, file: File): Promise
 
 export async function deleteProductImage(imageId: number): Promise<void> {
   const supabase = createClient();
+
+  // La URL hay que leerla ANTES de borrar la fila: es el único puntero al
+  // archivo en el bucket. Hasta ahora solo se borraba la fila y el archivo
+  // quedaba ocupando espacio para siempre.
+  const { data: existing } = await supabase
+    .from("product_images")
+    .select("url")
+    .eq("id", imageId)
+    .maybeSingle();
+
   const { error } = await supabase.from("product_images").delete().eq("id", imageId);
   if (error) throw error;
+
+  if (existing?.url) await removeStorageObject(existing.url);
 }
 
 export async function reorderProductImages(images: { id: number; sort_order: number }[]): Promise<void> {
   const supabase = createClient();
-  const { error } = await Promise.all(
+  const results = await Promise.all(
     images.map((img) => supabase.from("product_images").update({ sort_order: img.sort_order }).eq("id", img.id)),
-  ).then((results) => results.find((r) => r.error) ?? { error: null });
-  if (error) throw error;
+  );
+  const failed = results.find((r) => r.error);
+  if (failed?.error) throw failed.error;
 }
 
 /** Sube directo a la imagen principal (subir = reemplazar y quedar como
@@ -121,17 +177,20 @@ export async function reorderProductImages(images: { id: number; sort_order: num
 export async function uploadPrincipalImage(productId: number, file: File): Promise<ProductImage> {
   const supabase = createClient();
 
+  // Reemplazar la principal también tiene que llevarse el archivo anterior,
+  // no solo la fila.
   const { data: existing } = await supabase
     .from("product_images")
-    .select("id")
+    .select("id, url")
     .eq("product_id", productId)
     .eq("is_primary", true)
     .maybeSingle();
   if (existing) {
     await supabase.from("product_images").delete().eq("id", existing.id);
+    await removeStorageObject(existing.url);
   }
 
-  const path = `${productId}/principal-${crypto.randomUUID()}-${file.name}`;
+  const path = `${productId}/principal-${crypto.randomUUID()}-${safeFileName(file.name)}`;
   const { error: uploadError } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file);
   if (uploadError) throw uploadError;
 
@@ -165,15 +224,16 @@ export async function setSizeTagImage(
 
   const { data: existing } = await supabase
     .from("product_images")
-    .select("id")
+    .select("id, url")
     .eq("product_id", productId)
     .eq("size_tag", sizeTag)
     .maybeSingle();
   if (existing) {
     await supabase.from("product_images").delete().eq("id", existing.id);
+    await removeStorageObject(existing.url);
   }
 
-  const path = `${productId}/${sizeTag}-${crypto.randomUUID()}-${file.name}`;
+  const path = `${productId}/${sizeTag}-${crypto.randomUUID()}-${safeFileName(file.name)}`;
   const { error: uploadError } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file);
   if (uploadError) throw uploadError;
 

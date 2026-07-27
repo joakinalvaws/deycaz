@@ -204,6 +204,26 @@ begin
     raise exception 'El pedido no tiene productos';
   end if;
 
+  -- Topes de sanidad: esta función tiene `grant execute ... to anon`
+  -- (el checkout es público), así que cualquiera puede llamarla directo por
+  -- REST. Mantener sincronizado con MAX_QTY_PER_LINE / MAX_LINES_PER_ORDER
+  -- en src/app/actions.ts.
+  if jsonb_array_length(p_items) > 40 then
+    raise exception 'El pedido tiene demasiados productos distintos';
+  end if;
+
+  -- Se valida con regex antes de castear: un `qty` no numérico haría fallar
+  -- el cast con un error de Postgres crudo en vez de este mensaje.
+  if exists (
+    select 1
+    from jsonb_array_elements(p_items) i
+    where coalesce(i->>'qty', '') !~ '^[0-9]+$'
+       or (i->>'qty')::int < 1
+       or (i->>'qty')::int > 50
+  ) then
+    raise exception 'Cantidad inválida: máximo 50 unidades por producto';
+  end if;
+
   if p_shipping_method not in ('lima_delivery', 'shalom_provincia') then
     raise exception 'Método de envío inválido';
   end if;
