@@ -31,7 +31,9 @@ export function useUploadProductImages(productId: number) {
     // Subida en paralelo — cada archivo se comprime y sube de forma
     // independiente (Promise.all), sin esperar a que termine el anterior.
     mutationFn: async (files: File[]) => {
-      const compressed = await Promise.all(files.map(compressImage));
+      const compressed = await Promise.all(
+        files.map((file) => compressImage(file, { normalizeComposition: true })),
+      );
       return Promise.all(compressed.map((file) => productsService.uploadProductImage(productId, file)));
     },
     onSuccess: () => {
@@ -67,7 +69,7 @@ export function useUploadPrincipalImage(productId: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (file: File) => {
-      const compressed = await compressImage(file);
+      const compressed = await compressImage(file, { normalizeComposition: true });
       return productsService.uploadPrincipalImage(productId, compressed);
     },
     onSuccess: () => {
@@ -82,7 +84,7 @@ export function useSetSizeTagImage(productId: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ sizeTag, file }: { sizeTag: ProductImageSizeTag; file: File }) => {
-      const compressed = await compressImage(file);
+      const compressed = await compressImage(file, { normalizeComposition: true });
       return productsService.setSizeTagImage(productId, sizeTag, compressed);
     },
     onSuccess: () => {
