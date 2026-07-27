@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -6,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
     // pero eso solo lo ve un bot que ya entró: acá se le dice de antemano
     // que ni lo rastree.
     rules: { userAgent: "*", allow: "/", disallow: "/admin" },
-    sitemap: "https://deycaz.store/sitemap.xml",
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

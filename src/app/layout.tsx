@@ -1,10 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { playfair, bebas, inter } from "@/lib/fonts";
-import heroMasVendido from "@/assets/hero-mas-vendido.webp";
+import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE } from "@/lib/seo";
 
-const SITE_URL = "https://deycaz.store";
-const SITE_NAME = "DEYCAZ";
 const SITE_DESCRIPTION =
   "Decants de perfumes 100% originales en todo el Perú. Envío 24-48h, pago contra entrega. Arma tu combo y ahorra.";
 
@@ -17,6 +15,7 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   keywords: ["decants Perú", "perfumes originales Perú", "decants Lima", "perfumes decants", "DEYCAZ"],
   robots: { index: true, follow: true },
+  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "es_PE",
@@ -24,13 +23,13 @@ export const metadata: Metadata = {
     title: `${SITE_NAME} — Perfumes y Decants originales en Perú`,
     description: SITE_DESCRIPTION,
     url: "/",
-    images: [{ url: heroMasVendido.src, width: heroMasVendido.width, height: heroMasVendido.height }],
+    images: [DEFAULT_OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title: `${SITE_NAME} — Perfumes y Decants originales en Perú`,
     description: SITE_DESCRIPTION,
-    images: [heroMasVendido.src],
+    images: [DEFAULT_OG_IMAGE.url],
   },
 };
 
@@ -46,6 +45,17 @@ const organizationJsonLd = {
   sameAs: ["https://www.instagram.com/deycaz.pe/", "https://www.tiktok.com/@deycaz.pe"],
 };
 
+// Sin SearchAction: el buscador del header filtra en el cliente y navega
+// directo a un producto, no existe una página de resultados con URL propia
+// (ej. /buscar?q=...) para apuntarle — agregar SearchAction sin eso sería
+// declarar una función que el sitio no tiene.
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: SITE_NAME,
+  url: SITE_URL,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -57,6 +67,10 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
         {children}
       </body>

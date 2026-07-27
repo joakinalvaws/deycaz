@@ -1,12 +1,19 @@
 import type { Metadata } from "next";
 import { getPromoProducts } from "@/lib/data";
 import { ProductCard } from "@/components/ProductCard";
+import { DEFAULT_OG_IMAGE } from "@/lib/seo";
 
 export const revalidate = 300;
 
+const title = "Promociones";
+const description = "Ofertas por tiempo limitado en decants seleccionados. Precios especiales, cantidad limitada.";
+
 export const metadata: Metadata = {
-  title: "Promociones",
-  description: "Ofertas por tiempo limitado en decants seleccionados. Precios especiales, cantidad limitada.",
+  title,
+  description,
+  alternates: { canonical: "/promociones" },
+  openGraph: { title, description, url: "/promociones", images: [DEFAULT_OG_IMAGE] },
+  twitter: { card: "summary_large_image", title, description, images: [DEFAULT_OG_IMAGE.url] },
 };
 
 export default async function PromocionesPage() {

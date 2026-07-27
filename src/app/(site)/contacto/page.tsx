@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
 import { ContactForm } from "@/components/ContactForm";
 import { WHATSAPP_NUMBER, WHATSAPP_DISPLAY, INSTAGRAM_URL, TIKTOK_URL } from "@/lib/constants";
+import { DEFAULT_OG_IMAGE } from "@/lib/seo";
+
+const title = "Contacto";
+const description = "Escríbenos por WhatsApp, Instagram o el formulario. Te respondemos el mismo día.";
 
 export const metadata: Metadata = {
-  title: "Contacto",
-  description: "Escríbenos por WhatsApp, Instagram o el formulario. Te respondemos el mismo día.",
+  title,
+  description,
+  alternates: { canonical: "/contacto" },
+  openGraph: { title, description, url: "/contacto", images: [DEFAULT_OG_IMAGE] },
+  twitter: { card: "summary_large_image", title, description, images: [DEFAULT_OG_IMAGE.url] },
 };
 
 export default function ContactoPage() {

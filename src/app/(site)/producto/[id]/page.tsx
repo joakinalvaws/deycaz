@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAllProducts, getProductById, getProductImages, getProductsByCategory } from "@/lib/data";
+import {
+  getAllProducts,
+  getCategoryBySlug,
+  getProductById,
+  getProductImages,
+  getProductsByCategory,
+} from "@/lib/data";
 import { ProductImage } from "@/components/ProductImage";
 import { ProductView } from "@/components/ProductView";
 import { formatPEN } from "@/lib/pricing";
+import { SITE_URL, DEFAULT_OG_IMAGE } from "@/lib/seo";
 
 export const revalidate = 300;
 
@@ -21,9 +28,34 @@ export async function generateMetadata({
   const { id } = await params;
   const product = await getProductById(Number(id));
   if (!product) return { title: "Producto" };
+
+  const description = `${product.name} — decant 100% original desde S/. ${formatPEN(product.price)}. Envío a todo el Perú, pago contra entrega.`;
+  const canonicalPath = `/producto/${product.id}`;
+  // Definir `openGraph` acá reemplaza TODO el objeto heredado del layout raíz
+  // (Next hace merge superficial, no mezcla campo por campo) — sin este
+  // bloque, compartir el link de un producto por WhatsApp mostraba el
+  // título/imagen genéricos del sitio en vez del producto real, que es
+  // justo el canal por el que se cierran los pedidos acá.
+  const image = product.imageUrl
+    ? { url: product.imageUrl, width: 1200, height: 1200 }
+    : DEFAULT_OG_IMAGE;
+
   return {
     title: product.name,
-    description: `${product.name} — decant 100% original desde S/. ${formatPEN(product.price)}. Envío a todo el Perú, pago contra entrega.`,
+    description,
+    alternates: { canonical: canonicalPath },
+    openGraph: {
+      title: product.name,
+      description,
+      url: canonicalPath,
+      images: [image],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.name,
+      description,
+      images: [image.url],
+    },
   };
 }
 
@@ -37,10 +69,13 @@ export default async function ProductoPage({ params }: { params: Promise<{ id: s
 
   // Los relacionados son siempre de la misma categoría, así que se pide esa
   // categoría y no el catálogo completo (que después se filtraba en
-  // memoria para quedarse con 4).
-  const [sameCategory, images] = await Promise.all([
+  // memoria para quedarse con 4). `getCategoryBySlug` es solo para el
+  // nombre legible del breadcrumb (el JSON-LD de categoría de abajo usaba
+  // el slug crudo).
+  const [sameCategory, images, category] = await Promise.all([
     getProductsByCategory(product.categorySlug),
     getProductImages(productId),
+    getCategoryBySlug(product.categorySlug),
   ]);
   const related = sameCategory.filter((p) => p.id !== product.id).slice(0, 4);
 
@@ -48,6 +83,7 @@ export default async function ProductoPage({ params }: { params: Promise<{ id: s
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
+    sku: String(product.id),
     category: product.categorySlug,
     ...(product.description ? { description: product.description } : {}),
     ...(product.imageUrl ? { image: product.imageUrl } : {}),
@@ -56,13 +92,38 @@ export default async function ProductoPage({ params }: { params: Promise<{ id: s
       priceCurrency: "PEN",
       price: product.price,
       availability: "https://schema.org/InStock",
-      url: `https://deycaz.store/producto/${product.id}`,
+      url: `${SITE_URL}/producto/${product.id}`,
     },
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Inicio", item: SITE_URL },
+      ...(category
+        ? [
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: `Perfumes ${category.name}`,
+              item: `${SITE_URL}/categoria/${category.slug}`,
+            },
+          ]
+        : []),
+      {
+        "@type": "ListItem",
+        position: category ? 3 : 2,
+        name: product.name,
+        item: `${SITE_URL}/producto/${product.id}`,
+      },
+    ],
   };
 
   return (
     <section className="mx-auto grid max-w-[1200px] grid-cols-1 gap-10 px-6 py-10 md:grid-cols-2 md:gap-16 md:px-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       <ProductView
         productId={product.id}

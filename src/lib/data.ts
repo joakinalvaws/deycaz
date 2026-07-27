@@ -154,6 +154,28 @@ export async function getTestimonials(): Promise<Testimonial[]> {
   }));
 }
 
+/** Solo lo que necesita el sitemap (id + fecha) — ni `Product` ni `Category`
+ * cargan `created_at` hoy, y agregarlo ahí forzaría seleccionarlo en las
+ * otras 4 consultas de productos que comparten `mapProduct` sin usarlo.
+ * `created_at` no es "última modificación" real (no hay ese campo en el
+ * esquema), pero es objetivamente mejor que la fecha de ahora repetida en
+ * cada entrada — que es lo que hacía el sitemap antes de esto. */
+export type SitemapEntry = { id: number; createdAt: string };
+
+export async function getSitemapProducts(): Promise<SitemapEntry[]> {
+  const { data, error } = await supabase.from("products").select("id, created_at").order("id");
+  if (error) throw new Error(`No se pudo cargar el sitemap de productos: ${error.message}`);
+  return (data ?? []).map((row) => ({ id: row.id, createdAt: row.created_at }));
+}
+
+export type SitemapCategoryEntry = { slug: string; createdAt: string };
+
+export async function getSitemapCategories(): Promise<SitemapCategoryEntry[]> {
+  const { data, error } = await supabase.from("categories").select("slug, created_at").order("sort_order");
+  if (error) throw new Error(`No se pudo cargar el sitemap de categorías: ${error.message}`);
+  return (data ?? []).map((row) => ({ slug: row.slug, createdAt: row.created_at }));
+}
+
 export async function getProductImages(productId: number): Promise<ProductImage[]> {
   const { data, error } = await supabase
     .from("product_images")

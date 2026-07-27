@@ -1,12 +1,23 @@
 import type { Metadata } from "next";
 import { getCategories } from "@/lib/data";
 import { CategoryTile } from "@/components/CategoryTile";
+import { DEFAULT_OG_IMAGE } from "@/lib/seo";
 
 export const revalidate = 300;
 
+const title = "Catálogo";
+const description =
+  "Explora nuestro catálogo de decants: nicho, diseñador, árabes, exclusivos y damas. Envío a todo el Perú.";
+
+// openGraph/twitter se repiten acá (no solo title/description) porque
+// definir `openGraph` reemplaza TODO el objeto heredado del layout raíz,
+// imagen incluida — sin esto la página quedaría compartiéndose sin imagen.
 export const metadata: Metadata = {
-  title: "Catálogo",
-  description: "Explora nuestro catálogo de decants: nicho, diseñador, árabes, exclusivos y damas. Envío a todo el Perú.",
+  title,
+  description,
+  alternates: { canonical: "/catalogo" },
+  openGraph: { title, description, url: "/catalogo", images: [DEFAULT_OG_IMAGE] },
+  twitter: { card: "summary_large_image", title, description, images: [DEFAULT_OG_IMAGE.url] },
 };
 
 export default async function CatalogoPage() {
