@@ -5,6 +5,12 @@ import * as categoriesService from "../services/categories";
 import type { CategoryInput } from "../services/categories";
 import { revalidateCategoryPaths } from "@/modules/admin/shared/actions/revalidate";
 
+function revalidate(categorySlug?: string) {
+  revalidateCategoryPaths(categorySlug).catch((err) =>
+    console.error("No se pudo revalidar el sitio público:", err),
+  );
+}
+
 const CATEGORIES_KEY = ["admin", "categories", "list"] as const;
 
 export function useCategories() {
@@ -17,7 +23,7 @@ export function useCreateCategory() {
     mutationFn: (input: CategoryInput) => categoriesService.createCategory(input),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY });
-      revalidateCategoryPaths(data.slug);
+      revalidate(data.slug);
     },
   });
 }
@@ -28,7 +34,7 @@ export function useUpdateCategory(slug: string) {
     mutationFn: (input: Partial<CategoryInput>) => categoriesService.updateCategory(slug, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY });
-      revalidateCategoryPaths(slug);
+      revalidate(slug);
     },
   });
 }
@@ -39,7 +45,7 @@ export function useDeleteCategory() {
     mutationFn: (slug: string) => categoriesService.deleteCategory(slug),
     onSuccess: (_data, slug) => {
       queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY });
-      revalidateCategoryPaths(slug);
+      revalidate(slug);
     },
   });
 }

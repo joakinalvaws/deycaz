@@ -8,6 +8,16 @@ import { revalidateProductPaths } from "@/modules/admin/shared/actions/revalidat
 
 const PRODUCTS_LIST_KEY = ["admin", "products", "list"] as const;
 
+// No se espera esta llamada (no debe frenar el flujo de guardado) pero
+// tampoco se ignora en silencio — si el Server Action de revalidación
+// falla, queda un rastro en la consola en vez de una promesa rota sin
+// manejar.
+function revalidate(productId?: number, categorySlug?: string | null) {
+  revalidateProductPaths(productId, categorySlug).catch((err) =>
+    console.error("No se pudo revalidar el sitio público:", err),
+  );
+}
+
 export function useProducts(filters: ProductFilters) {
   return useQuery({
     queryKey: [...PRODUCTS_LIST_KEY, filters],
@@ -29,7 +39,7 @@ export function useCreateProduct() {
     mutationFn: (input: ProductInput) => productsService.createProduct(input),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: PRODUCTS_LIST_KEY });
-      revalidateProductPaths(data.id, data.category_slug);
+      revalidate(data.id, data.category_slug);
     },
   });
 }
@@ -41,7 +51,7 @@ export function useUpdateProduct(id: number) {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: PRODUCTS_LIST_KEY });
       queryClient.setQueryData(["admin", "products", "detail", id], data);
-      revalidateProductPaths(id, data.category_slug);
+      revalidate(id, data.category_slug);
     },
   });
 }
@@ -52,7 +62,7 @@ export function useDeleteProduct() {
     mutationFn: (id: number) => productsService.deleteProduct(id),
     onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: PRODUCTS_LIST_KEY });
-      revalidateProductPaths(id);
+      revalidate(id);
     },
   });
 }
@@ -77,7 +87,7 @@ export function useToggleProductActive() {
     },
     onSettled: (data, _err, { id }) => {
       queryClient.invalidateQueries({ queryKey: PRODUCTS_LIST_KEY });
-      revalidateProductPaths(id, data?.category_slug);
+      revalidate(id, data?.category_slug);
     },
   });
 }

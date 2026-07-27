@@ -6,6 +6,14 @@ import { compressImage } from "../services/imageCompression";
 import type { ProductImageSizeTag } from "../types";
 import { revalidateProductPaths } from "@/modules/admin/shared/actions/revalidate";
 
+// No se espera esta llamada (no debe frenar el flujo de guardado) pero
+// tampoco se ignora en silencio.
+function revalidate(productId: number) {
+  revalidateProductPaths(productId).catch((err) =>
+    console.error("No se pudo revalidar el sitio público:", err),
+  );
+}
+
 function imagesKey(productId: number) {
   return ["admin", "products", "images", productId] as const;
 }
@@ -28,7 +36,7 @@ export function useUploadProductImages(productId: number) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: imagesKey(productId) });
-      revalidateProductPaths(productId);
+      revalidate(productId);
     },
   });
 }
@@ -39,7 +47,7 @@ export function useDeleteProductImage(productId: number) {
     mutationFn: (imageId: number) => productsService.deleteProductImage(imageId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: imagesKey(productId) });
-      revalidateProductPaths(productId);
+      revalidate(productId);
     },
   });
 }
@@ -50,7 +58,7 @@ export function useReorderProductImages(productId: number) {
     mutationFn: (images: { id: number; sort_order: number }[]) => productsService.reorderProductImages(images),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: imagesKey(productId) });
-      revalidateProductPaths(productId);
+      revalidate(productId);
     },
   });
 }
@@ -65,7 +73,7 @@ export function useUploadPrincipalImage(productId: number) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: imagesKey(productId) });
       queryClient.invalidateQueries({ queryKey: ["admin", "products", "detail", productId] });
-      revalidateProductPaths(productId);
+      revalidate(productId);
     },
   });
 }
@@ -79,7 +87,7 @@ export function useSetSizeTagImage(productId: number) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: imagesKey(productId) });
-      revalidateProductPaths(productId);
+      revalidate(productId);
     },
   });
 }
