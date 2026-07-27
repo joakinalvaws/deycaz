@@ -8,6 +8,8 @@ import { CategoryTile } from "@/components/CategoryTile";
 import { Marquee } from "@/components/Marquee";
 import { TikTokEmbed } from "@/components/TikTokEmbed";
 import heroFrascos from "@/assets/hero-frascos.png";
+import comboBackground from "@/assets/combo-background.webp";
+import comboBackgroundMobile from "@/assets/combo-background-mobile.webp";
 
 export const revalidate = 300;
 
@@ -103,7 +105,26 @@ export default async function HomePage() {
 
       <section className="px-6 pt-16 md:px-10 md:pt-24">
         <div className="relative mx-auto h-[420px] max-w-[1400px] overflow-hidden bg-foreground md:h-[520px]">
-          <div className="pointer-events-none absolute inset-0 bg-linear-to-r from-black/82 via-black/55 to-black/15" />
+          <Image
+            src={comboBackgroundMobile}
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover md:hidden"
+          />
+          <Image
+            src={comboBackground}
+            alt=""
+            fill
+            sizes="100vw"
+            className="hidden object-cover md:block"
+          />
+          {/* Degradado oscuro de izquierda hasta ~la mitad (no toda la
+              imagen) para que el texto contraste y a la derecha la foto se
+              vea sin lavar. Stops explícitos (no from/via/to de Tailwind,
+              que reparten el 100% del ancho) para que el negro se disipe
+              justo pasado el centro. */}
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.88)_0%,rgba(0,0,0,0.55)_35%,rgba(0,0,0,0)_58%,rgba(0,0,0,0)_100%)]" />
           <div className="absolute top-1/2 left-6 max-w-[520px] -translate-y-1/2 md:left-16">
             <span className="inline-block border border-white/50 px-4 py-2 text-xs font-bold tracking-wide text-white">
               AHORRA HASTA S/. 100
@@ -126,7 +147,7 @@ export default async function HomePage() {
       <section className="px-6 pt-16 md:px-10 md:pt-24">
         <div className="mx-auto max-w-[1400px]">
           <h2 className="font-display mb-9 text-center text-4xl tracking-wide md:text-[42px]">CATÁLOGO</h2>
-          <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0 lg:grid-cols-6">
+          <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:gap-2 sm:overflow-visible sm:pb-0 lg:grid-cols-6">
             {categories.map((c) => (
               <div key={c.slug} className="w-[42%] flex-none snap-start sm:w-auto">
                 <CategoryTile
