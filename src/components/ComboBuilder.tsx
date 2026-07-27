@@ -257,11 +257,17 @@ export function ComboBuilder({
     // automático se sentía brusco — el scroll automático queda solo para
     // mobile, donde sí hace falta para notar que se desbloqueó contenido.
     if (window.innerWidth >= DESKTOP_BREAKPOINT) return;
-    sizeZoneRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    // "start" dejaba la sección pegada arriba del todo — como TAMAÑO es
+    // corta, el resto de la pantalla quedaba vacío (a veces asomando el
+    // footer del sitio detrás). "center" la deja a media pantalla: da
+    // contexto de que hay un siguiente paso sin over-scrollear.
+    sizeZoneRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [category]);
 
   useEffect(() => {
-    if (size) perfumesZoneRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (!size) return;
+    if (window.innerWidth >= DESKTOP_BREAKPOINT) return;
+    perfumesZoneRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [size]);
 
   function toggleProduct(id: number) {
@@ -400,21 +406,21 @@ export function ComboBuilder({
             <div className="text-muted-2 mb-4.5 border-b border-[#e2e0dc] pb-2.5 text-[11px] font-bold tracking-wide">
               CATEGORÍA
             </div>
-            <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div className="mb-8 grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-4">
               {comboCategories.map((c) => (
                 <button
                   key={c.slug}
                   type="button"
                   onClick={() => selectCategory(c.slug)}
-                  className={`border px-4 py-4 text-center ${
+                  className={`border px-2.5 py-2.5 text-center md:px-4 md:py-4 ${
                     category === c.slug
                       ? "border-foreground bg-foreground text-white"
                       : "border-[#e2e0dc] bg-white"
                   }`}
                 >
-                  <div className="mb-1 text-xs opacity-70">{c.subtitle}</div>
-                  <div className="text-[19px] font-extrabold tracking-wide">{c.name}</div>
-                  <div className="mt-1 text-xs opacity-70">Desde S/. {c.desde}</div>
+                  <div className="mb-0.5 text-[10px] opacity-70 md:mb-1 md:text-xs">{c.subtitle}</div>
+                  <div className="text-sm font-extrabold tracking-wide md:text-[19px]">{c.name}</div>
+                  <div className="mt-0.5 text-[10px] opacity-70 md:mt-1 md:text-xs">Desde S/. {c.desde}</div>
                 </button>
               ))}
             </div>
@@ -425,18 +431,18 @@ export function ComboBuilder({
               <div className="text-muted-2 mb-4.5 border-b border-[#e2e0dc] pb-2.5 text-[11px] font-bold tracking-wide">
                 TAMAÑO
               </div>
-              <div className="mb-6 grid grid-cols-3 gap-4">
+              <div className="mb-6 grid grid-cols-3 gap-2 md:gap-4">
                 {SIZES.map((sz) => (
                   <button
                     key={sz}
                     type="button"
                     onClick={() => switchTo(category, sz)}
-                    className={`border px-4 py-4 text-center ${
+                    className={`border px-2.5 py-2.5 text-center md:px-4 md:py-4 ${
                       size === sz ? "border-foreground bg-foreground text-white" : "border-[#e2e0dc] bg-white"
                     }`}
                   >
-                    <div className="text-2xl font-extrabold">{sz}ML</div>
-                    <div className="mt-1 text-xs opacity-70">
+                    <div className="text-lg font-extrabold md:text-2xl">{sz}ML</div>
+                    <div className="mt-0.5 text-[10px] opacity-70 md:mt-1 md:text-xs">
                       Individual S/. {formatPEN(FLAT_COMBO_SIZE_PRICE[sz])}
                     </div>
                   </button>
@@ -522,19 +528,28 @@ export function ComboBuilder({
               </div>
 
               <div className="lg:hidden">
-                <button
-                  type="button"
-                  onClick={() => setMobileSummaryOpen(true)}
-                  className="fixed right-5 bottom-5 z-40 flex h-14 items-center gap-2 rounded-full bg-[#e8e6e1] px-5 text-foreground shadow-lg"
-                >
-                  <span className="text-2xl">🛒</span>
-                  <span className="text-sm font-bold">S/. {formatPEN(total)}</span>
-                  {totalCount > 0 && (
-                    <span className="bg-success absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold text-white">
-                      {totalCount}
+                <div className="fixed right-5 bottom-5 z-40 flex items-stretch">
+                  {discount > 0 && (
+                    <span className="bg-success flex items-center rounded-l-full px-4 text-sm font-bold text-white">
+                      -S/. {formatPEN(discount)}
                     </span>
                   )}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setMobileSummaryOpen(true)}
+                    className={`relative flex h-14 items-center gap-2 bg-[#e8e6e1] px-5 text-foreground shadow-lg ${
+                      discount > 0 ? "rounded-r-full" : "rounded-full"
+                    }`}
+                  >
+                    <span className="text-2xl">🛒</span>
+                    <span className="text-sm font-bold">S/. {formatPEN(total)}</span>
+                    {totalCount > 0 && (
+                      <span className="bg-success absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold text-white">
+                        {totalCount}
+                      </span>
+                    )}
+                  </button>
+                </div>
 
                 {mobileSummaryOpen && (
                   <>
