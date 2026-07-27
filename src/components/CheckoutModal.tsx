@@ -44,6 +44,7 @@ export function CheckoutModal() {
     discountedSubtotal,
     bundleDiscount,
     comboQty,
+    comboPairs,
     checkoutOpen,
     closeCheckout,
     clear,
@@ -243,7 +244,7 @@ export function CheckoutModal() {
                   </div>
                   <div className="mb-2.5 border-b border-border-strong pb-2.5">
                     <BundleDiscountSummary
-                      comboQty={comboQty}
+                      pairs={comboPairs}
                       maxTierMessage="🏆 Ya obtuviste el mayor descuento disponible."
                     />
                   </div>

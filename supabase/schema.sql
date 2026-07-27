@@ -145,6 +145,59 @@ create policy "contact_messages_public_insert" on contact_messages
 -- Sin policy de select pública: el panel admin lee con la service role key.
 
 -- ============================================================
+-- FUNCIÓN: combo_pair_discount
+--
+-- Tabla de descuentos fijos (en soles) de "Arma tu Combo", por categoría,
+-- tamaño y cantidad de ese par exacto — el descuento de cada par
+-- (categoría, tamaño) es independiente y se suman entre sí (ver uso en
+-- place_order). Mantener sincronizada con COMBO_PAIR_DISCOUNT_TABLE en
+-- src/lib/bundleDiscount.ts. qty se recorta a 6 (MAX_QTY_PER_PAIR — ver el
+-- chequeo de v_combo_pair_over_cap en place_order) y qty<2 siempre da 0.
+-- El `else 0` final cubre cualquier categoría fuera de las 4 elegibles hoy
+-- para combo (arabes, disenador, exclusivos, nicho).
+-- ============================================================
+create or replace function public.combo_pair_discount(
+  p_category_slug text,
+  p_size          text,
+  p_qty           int
+) returns numeric
+language sql
+immutable
+as $$
+  select coalesce(
+    case
+      when p_qty < 2 then 0
+      when p_category_slug = 'arabes' and p_size = '3' then
+        case least(p_qty,6) when 2 then 5 when 3 then 10 when 4 then 20 when 5 then 25 when 6 then 30 end
+      when p_category_slug = 'arabes' and p_size = '5' then
+        case least(p_qty,6) when 2 then 10 when 3 then 20 when 4 then 40 when 5 then 50 when 6 then 60 end
+      when p_category_slug = 'arabes' and p_size = '10' then
+        case least(p_qty,6) when 2 then 10 when 3 then 30 when 4 then 40 when 5 then 50 when 6 then 60 end
+      when p_category_slug = 'disenador' and p_size = '3' then
+        case least(p_qty,6) when 2 then 7 when 3 then 15 when 4 then 30 when 5 then 37 when 6 then 45 end
+      when p_category_slug = 'disenador' and p_size = '5' then
+        case least(p_qty,6) when 2 then 15 when 3 then 30 when 4 then 60 when 5 then 75 when 6 then 90 end
+      when p_category_slug = 'disenador' and p_size = '10' then
+        case least(p_qty,6) when 2 then 15 when 3 then 45 when 4 then 60 when 5 then 75 when 6 then 90 end
+      when p_category_slug = 'exclusivos' and p_size = '3' then
+        case least(p_qty,6) when 2 then 25 when 3 then 50 when 4 then 100 when 5 then 125 when 6 then 150 end
+      when p_category_slug = 'exclusivos' and p_size = '5' then
+        case least(p_qty,6) when 2 then 50 when 3 then 100 when 4 then 200 when 5 then 250 when 6 then 300 end
+      when p_category_slug = 'exclusivos' and p_size = '10' then
+        case least(p_qty,6) when 2 then 50 when 3 then 150 when 4 then 200 when 5 then 250 when 6 then 300 end
+      when p_category_slug = 'nicho' and p_size = '3' then
+        case least(p_qty,6) when 2 then 10 when 3 then 20 when 4 then 40 when 5 then 50 when 6 then 60 end
+      when p_category_slug = 'nicho' and p_size = '5' then
+        case least(p_qty,6) when 2 then 20 when 3 then 40 when 4 then 80 when 5 then 100 when 6 then 120 end
+      when p_category_slug = 'nicho' and p_size = '10' then
+        case least(p_qty,6) when 2 then 20 when 3 then 60 when 4 then 80 when 5 then 100 when 6 then 120 end
+      else 0
+    end,
+    0
+  );
+$$;
+
+-- ============================================================
 -- FUNCIÓN: place_order
 --
 -- Crea el pedido y sus items en una sola transacción, recalculando TODOS
@@ -157,11 +210,12 @@ create policy "contact_messages_public_insert" on contact_messages
 --     (frasco entero) nunca puede pedirse como parte de un combo.
 --   - Item de "Arma tu Combo" (is_combo=true): precio plano por tamaño
 --     (3ml=S/.30, 5ml=S/.45, 10ml=S/.75), sin descuento incrustado por
---     unidad. El descuento se resta una sola vez sobre el subtotal total,
---     según la cantidad total de combo en el pedido, con niveles fijos en
---     soles (mantener sincronizado con BUNDLE_DISCOUNT_TIERS en
---     src/lib/bundleDiscount.ts): 1→S/.0, 2→S/.10, 3→S/.20, 4→S/.35,
---     5→S/.45, 6+→S/.50 (nunca se acumulan niveles).
+--     unidad. El descuento se calcula por separado para cada par
+--     (categoría, tamaño) presente en el pedido, según cuántas unidades de
+--     ese par exacto se pidieron (combo_pair_discount), y se suman los
+--     descuentos de todos los pares — sin término cruzado entre ellos.
+--     Tope: máximo 6 unidades por cada par (categoría, tamaño); si algún
+--     par lo supera, se rechaza el pedido completo.
 --   - Envío: 'lima_delivery' gratis desde S/.250 de subtotal con descuento
 --     ya aplicado, si no S/.15.
 --     'shalom_provincia' siempre S/.0 para la tienda — el cliente paga el
@@ -198,7 +252,10 @@ declare
   v_flat_price               numeric;
   v_subtotal                 numeric := 0;
   v_shipping_cost            numeric := 0;
-  v_combo_qty                int := 0;
+  v_pair_qty                 jsonb := '{}'::jsonb;
+  v_pair_key                 text;
+  v_pair_rec                 record;
+  v_combo_pair_over_cap      boolean := false;
   v_bundle_discount          numeric := 0;
   v_subtotal_after_discount  numeric := 0;
   v_computed                 jsonb := '[]'::jsonb;
@@ -240,21 +297,6 @@ begin
     end if;
   end if;
 
-  select coalesce(sum((i->>'qty')::int), 0) into v_combo_qty
-  from jsonb_array_elements(p_items) i
-  where coalesce((i->>'is_combo')::boolean, false) is true;
-
-  -- Tabla de niveles fijos: mantener sincronizada con
-  -- BUNDLE_DISCOUNT_TIERS en src/lib/bundleDiscount.ts.
-  v_bundle_discount := case
-    when v_combo_qty >= 6 then 50
-    when v_combo_qty >= 5 then 45
-    when v_combo_qty >= 4 then 35
-    when v_combo_qty >= 3 then 20
-    when v_combo_qty >= 2 then 10
-    else 0
-  end;
-
   for v_item in select * from jsonb_array_elements(p_items)
   loop
     select * into v_product
@@ -277,8 +319,17 @@ begin
         when '3' then 30 when '5' then 45 when '10' then 75
       end;
       -- Precio plano, sin descuento incrustado por unidad: el descuento se
-      -- resta una sola vez sobre el subtotal total del pedido (más abajo).
+      -- calcula aparte, por cada par (categoría, tamaño), más abajo.
       v_unit_price := v_flat_price;
+
+      -- Acumula la cantidad de este par (categoría, tamaño) — v_product ya
+      -- viene de la tabla real (confiable), nunca del payload del cliente.
+      v_pair_key := v_product.category_slug || '::' || (v_item->>'size');
+      v_pair_qty := jsonb_set(
+        v_pair_qty,
+        array[v_pair_key],
+        to_jsonb(coalesce((v_pair_qty->>v_pair_key)::int, 0) + (v_item->>'qty')::int)
+      );
     else
       if (v_item->>'size') = 'full' and v_product.price_full_bottle is null then
         raise exception 'Este producto no tiene precio de frasco entero configurado';
@@ -308,6 +359,36 @@ begin
       'is_combo', coalesce((v_item->>'is_combo')::boolean, false)
     );
   end loop;
+
+  -- Descuento de "Arma tu Combo": independiente por cada par (categoría,
+  -- tamaño) acumulado en v_pair_qty durante el loop de arriba, luego
+  -- sumados — sin término cruzado entre pares distintos. Mantener
+  -- combo_pair_discount() sincronizada con COMBO_PAIR_DISCOUNT_TABLE en
+  -- src/lib/bundleDiscount.ts.
+  for v_pair_rec in
+    select key as pair_key, value::int as qty
+    from jsonb_each_text(v_pair_qty)
+  loop
+    if v_pair_rec.qty > 6 then
+      v_combo_pair_over_cap := true;
+    end if;
+    v_bundle_discount := v_bundle_discount + public.combo_pair_discount(
+      split_part(v_pair_rec.pair_key, '::', 1),
+      split_part(v_pair_rec.pair_key, '::', 2),
+      v_pair_rec.qty
+    );
+  end loop;
+
+  -- Tope de sanidad: 6 unidades máximo por cada par (categoría, tamaño) de
+  -- combo. La UI ya bloquea (opacidad + disabled) los perfumes de un par
+  -- al llegar a 6, así que en operación normal esto nunca debería
+  -- dispararse — es una red de seguridad ante una llamada directa a la API
+  -- que se salte la UI (mismo criterio que los chequeos de arriba de `qty`
+  -- y de `jsonb_array_length`). Se rechaza el pedido completo en vez de
+  -- recortar la cantidad en silencio.
+  if v_combo_pair_over_cap then
+    raise exception 'Cada categoría y tamaño admite un máximo de 6 unidades en Arma tu Combo';
+  end if;
 
   v_subtotal_after_discount := greatest(v_subtotal - v_bundle_discount, 0);
 

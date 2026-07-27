@@ -12,13 +12,14 @@ import {
 import * as cartStore from "@/lib/cartStore";
 import type { AddItemInput } from "@/lib/cartStore";
 import type { CartItem } from "@/lib/types";
-import { getBundleDiscount } from "@/lib/bundleDiscount";
+import { getComboDiscountForItems, groupComboPairs, type ComboPairGroup } from "@/lib/bundleDiscount";
 
 type CartContextValue = {
   items: CartItem[];
   count: number;
   subtotal: number;
   comboQty: number;
+  comboPairs: ComboPairGroup[];
   bundleDiscount: number;
   discountedSubtotal: number;
   isOpen: boolean;
@@ -73,7 +74,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     () => items.filter((i) => i.isCombo).reduce((a, c) => a + c.qty, 0),
     [items],
   );
-  const bundleDiscount = useMemo(() => getBundleDiscount(comboQty), [comboQty]);
+  const comboPairs = useMemo(() => groupComboPairs(items), [items]);
+  const bundleDiscount = useMemo(() => getComboDiscountForItems(items), [items]);
   const discountedSubtotal = useMemo(
     () => Math.max(subtotal - bundleDiscount, 0),
     [subtotal, bundleDiscount],
@@ -84,6 +86,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     count,
     subtotal,
     comboQty,
+    comboPairs,
     bundleDiscount,
     discountedSubtotal,
     isOpen,

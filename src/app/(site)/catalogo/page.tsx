@@ -26,7 +26,7 @@ export default async function CatalogoPage() {
   return (
     <section className="mx-auto max-w-[1400px] px-6 py-10 md:px-10">
       <h1 className="font-serif mb-8 text-3xl">Catálogo</h1>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3">
         {categories.map((c) => (
           <CategoryTile
             key={c.slug}

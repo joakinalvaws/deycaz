@@ -6,7 +6,7 @@ import { BundleDiscountSummary } from "./BundleDiscountSummary";
 import { FreeShippingSummary } from "./FreeShippingSummary";
 
 export function CartDrawer() {
-  const { items, isOpen, closeCart, removeItem, changeQty, comboQty, discountedSubtotal, openCheckout } =
+  const { items, isOpen, closeCart, removeItem, changeQty, comboPairs, discountedSubtotal, openCheckout } =
     useCart();
 
   if (!isOpen) return null;
@@ -65,9 +65,9 @@ export function CartDrawer() {
         </div>
 
         <div className="border-t border-border px-6 py-5">
-          {comboQty > 0 && (
+          {comboPairs.length > 0 && (
             <div className="mb-4">
-              <BundleDiscountSummary comboQty={comboQty} />
+              <BundleDiscountSummary pairs={comboPairs} />
             </div>
           )}
           <div className="mb-4">
