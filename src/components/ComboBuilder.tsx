@@ -537,13 +537,11 @@ export function ComboBuilder({
 
               <div className="lg:hidden">
                 <div className="fixed right-5 bottom-5 z-40 h-14 w-14">
-                  {/* Total: sale desde atrás de la burbuja hacia la izquierda
-                      (z-0, la burbuja la tapa parcialmente por encima).
-                      right-10 (no right-6): que lo tapado sea ~el padding
-                      derecho (pr-4) y no dígitos reales del precio —
-                      independiente de si el número tiene más o menos
-                      caracteres. */}
-                  <span className="absolute top-1/2 right-10 z-0 -translate-y-1/2 rounded-md bg-foreground py-1.5 pr-4 pl-2.5 text-[11px] font-bold whitespace-nowrap text-white shadow-md">
+                  {/* Total: badge negro a la izquierda de la burbuja, con un
+                      pequeño espacio entre ambos (right-16: el borde derecho
+                      del badge queda un poco antes de x=0, o sea antes del
+                      borde del círculo — nada de texto queda tapado). */}
+                  <span className="absolute top-1/2 right-16 z-0 -translate-y-1/2 rounded-md bg-foreground py-1.5 pr-4 pl-2.5 text-[11px] font-bold whitespace-nowrap text-white shadow-md">
                     S/. {formatWholeSoles(total)}
                   </span>
 
@@ -558,7 +556,7 @@ export function ComboBuilder({
                   {/* Descuento: rectángulo con esquinas redondeadas arriba a
                       la derecha, comiendo un poco el borde de la burbuja. */}
                   {discount > 0 && (
-                    <span className="bg-success absolute -top-2 -right-2.5 z-20 rounded-md px-1.5 py-1 text-[10px] font-bold whitespace-nowrap text-white shadow">
+                    <span className="bg-success absolute -top-2 -right-2.5 z-20 rounded-md px-1 py-0.5 text-[9px] font-bold whitespace-nowrap text-white shadow">
                       -S/. {formatWholeSoles(discount)}
                     </span>
                   )}
