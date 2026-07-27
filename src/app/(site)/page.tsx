@@ -123,13 +123,13 @@ export default async function HomePage() {
         {/* -mx-6 (cancelado en md con mx-auto) para que en mobile la foto
             llegue de borde a borde de la pantalla, ignorando el padding de
             la sección — en desktop vuelve a estar centrada con max-width. */}
-        <div className="relative -mx-6 h-[500px] overflow-hidden bg-foreground md:mx-auto md:h-[520px] md:max-w-[1400px]">
+        <div className="relative -mx-6 h-[640px] overflow-hidden bg-foreground md:mx-auto md:h-[520px] md:max-w-[1400px]">
           <Image
             src={comboBackgroundMobile}
             alt=""
             fill
             sizes="100vw"
-            className="object-cover md:hidden"
+            className="scale-125 object-cover md:hidden"
           />
           <Image
             src={comboBackground}
@@ -149,8 +149,10 @@ export default async function HomePage() {
               centro. */}
           <div className="pointer-events-none absolute inset-0 hidden bg-[linear-gradient(to_right,rgba(0,0,0,0.88)_0%,rgba(0,0,0,0.55)_35%,rgba(0,0,0,0)_58%,rgba(0,0,0,0)_100%)] md:block" />
 
-          {/* Mobile: contenido centrado (ambos ejes). */}
-          <div className="relative flex h-full items-center justify-center px-6 md:hidden">
+          {/* Mobile: contenido centrado horizontalmente pero pegado abajo
+              (el espacio de arriba es donde se ven los productos de la
+              foto — el texto no debe taparlos). */}
+          <div className="relative flex h-full items-end justify-center px-6 pb-10 md:hidden">
             <div className="max-w-[420px] text-center">
               <span className="inline-block border border-white/50 px-4 py-2 text-xs font-bold tracking-wide text-white">
                 AHORRA HASTA S/. 50
@@ -169,7 +171,7 @@ export default async function HomePage() {
               </div>
               <Link
                 href="/combo"
-                className="inline-block rounded-full bg-[linear-gradient(to_bottom,#6b6b6b_0%,#111111_100%)] px-10 py-4 text-[13px] font-bold tracking-wide text-white"
+                className="inline-block rounded-lg bg-[linear-gradient(to_bottom,#6b6b6b_0%,#111111_100%)] px-10 py-4 text-[13px] font-bold tracking-wide text-white"
               >
                 ARMA TU COMBO
               </Link>
@@ -195,7 +197,7 @@ export default async function HomePage() {
             </div>
             <Link
               href="/combo"
-              className="inline-block rounded-full bg-[linear-gradient(to_bottom,#6b6b6b_0%,#111111_100%)] px-10 py-4 text-[13px] font-bold tracking-wide text-white"
+              className="inline-block rounded-lg bg-[linear-gradient(to_bottom,#6b6b6b_0%,#111111_100%)] px-10 py-4 text-[13px] font-bold tracking-wide text-white"
             >
               ARMA TU COMBO
             </Link>
