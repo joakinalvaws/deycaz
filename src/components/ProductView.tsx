@@ -76,7 +76,13 @@ export function ProductView({
           fila con scroll horizontal. Desktop (md:, mismo breakpoint que ya
           usa el grid de esta página en producto/[id]/page.tsx): miniaturas
           en columna a la izquierda, como antes. */}
-      <div className="flex flex-col gap-3 md:flex-row">
+      {/* md:items-start: sin esto, si la columna de miniaturas termina más
+          alta que el cuadro de la imagen (varias fotos apiladas, hasta
+          520px), el align-items:stretch por defecto de este flex-row
+          estira igual el <div aspect-square> de la imagen — mismo problema
+          que se cerró en producto/[id]/page.tsx a nivel del grid externo,
+          acá puede repetirse un nivel más adentro. */}
+      <div className="flex flex-col gap-3 md:flex-row md:items-start">
         {thumbnails.length > 0 && (
           <div className="order-2 flex w-full flex-row gap-2 overflow-x-auto md:order-1 md:max-h-[520px] md:w-20 md:flex-none md:flex-col md:overflow-x-visible md:overflow-y-auto">
             {thumbnails.map((url, i) => (

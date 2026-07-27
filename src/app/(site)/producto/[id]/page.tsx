@@ -121,7 +121,18 @@ export default async function ProductoPage({ params }: { params: Promise<{ id: s
   };
 
   return (
-    <section className="mx-auto grid max-w-[1200px] grid-cols-1 gap-10 px-6 py-10 md:grid-cols-2 md:gap-16 md:px-10">
+    // md:items-start: por defecto el grid estira ambas columnas a la altura
+    // de la más alta (align-items: stretch). La columna de texto es mucho
+    // más alta que la de la imagen (selector de tamaño, stepper, botones,
+    // los dos desplegables) — sin este fix, ese estiramiento se colaba
+    // hasta el <div aspect-square> de la imagen (los hijos de un flex
+    // container también heredan stretch en el eje transversal por
+    // defecto) y lo dejaba rectangular en vez de cuadrado, con la imagen
+    // recortada de forma mucho más agresiva por object-cover — el "zoom"
+    // que se veía en desktop. En mobile no pasaba porque ahí las dos
+    // columnas son un solo grid-cols-1 (una debajo de la otra, no lado a
+    // lado), no hay estiramiento cruzado entre ellas.
+    <section className="mx-auto grid max-w-[1200px] grid-cols-1 gap-10 px-6 py-10 md:grid-cols-2 md:items-start md:gap-16 md:px-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
