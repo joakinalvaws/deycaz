@@ -13,6 +13,22 @@ import comboBackgroundMobile from "@/assets/combo-background-mobile.webp";
 
 export const revalidate = 300;
 
+/** Ícono de los bullets de "Arma tu Combo" (antes un simple "—"). Viene del
+ * SVG que se dejó en la raíz del proyecto (secure-svgrepo-com.svg);
+ * fill="currentColor" en vez del "#000000" original para que herede el
+ * color de texto del bullet. */
+function ComboBulletIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="size-4 shrink-0" xmlns="http://www.w3.org/2000/svg">
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M12.4472 1.10557C12.1657 0.964809 11.8343 0.964809 11.5528 1.10557L3.55279 5.10557C3.214 5.27496 3 5.62123 3 6V12C3 14.6622 3.86054 16.8913 5.40294 18.7161C6.92926 20.5218 9.08471 21.8878 11.6214 22.9255C11.864 23.0248 12.136 23.0248 12.3786 22.9255C14.9153 21.8878 17.0707 20.5218 18.5971 18.7161C20.1395 16.8913 21 14.6622 21 12V6C21 5.62123 20.786 5.27496 20.4472 5.10557L12.4472 1.10557ZM5 12V6.61803L12 3.11803L19 6.61803V12C19 14.1925 18.305 15.9635 17.0696 17.425C15.8861 18.8252 14.1721 19.9803 12 20.9156C9.82786 19.9803 8.11391 18.8252 6.93039 17.425C5.69502 15.9635 5 14.1925 5 12ZM16.7572 9.65323C17.1179 9.23507 17.0714 8.60361 16.6532 8.24284C16.2351 7.88207 15.6036 7.9286 15.2428 8.34677L10.7627 13.5396L8.70022 11.5168C8.30592 11.1301 7.67279 11.1362 7.28607 11.5305C6.89935 11.9248 6.90549 12.5579 7.29978 12.9446L10.1233 15.7139C10.3206 15.9074 10.5891 16.0106 10.8651 15.9991C11.1412 15.9876 11.4002 15.8624 11.5807 15.6532L16.7572 9.65323Z"
+      />
+    </svg>
+  );
+}
+
 export default async function HomePage() {
   const [bestSellers, categories, testimonials] = await Promise.all([
     getBestSellers(),
@@ -122,32 +138,67 @@ export default async function HomePage() {
             sizes="100vw"
             className="hidden object-cover md:block"
           />
-          {/* Degradado oscuro de izquierda hasta ~la mitad (no toda la
-              imagen) para que el texto contraste y a la derecha la foto se
-              vea sin lavar. Stops explícitos (no from/via/to de Tailwind,
-              que reparten el 100% del ancho) para que el negro se disipe
-              justo pasado el centro. */}
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.88)_0%,rgba(0,0,0,0.55)_35%,rgba(0,0,0,0)_58%,rgba(0,0,0,0)_100%)]" />
-          <div className="relative flex h-full items-center justify-center px-6">
-            <div className="max-w-[520px] text-center">
+          {/* Degradado mobile: oscuro abajo, se disipa subiendo (el texto
+              va centrado en todo el alto, no anclado abajo, pero el
+              contraste más fuerte cerca de la base es lo que se pidió). */}
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.85)_0%,rgba(0,0,0,0.5)_45%,rgba(0,0,0,0.15)_75%,rgba(0,0,0,0.15)_100%)] md:hidden" />
+          {/* Degradado desktop: oscuro a la izquierda hasta ~la mitad (no
+              toda la imagen), texto anclado a la izquierda como antes.
+              Stops explícitos (no from/via/to de Tailwind, que reparten el
+              100% del ancho) para que el negro se disipe justo pasado el
+              centro. */}
+          <div className="pointer-events-none absolute inset-0 hidden bg-[linear-gradient(to_right,rgba(0,0,0,0.88)_0%,rgba(0,0,0,0.55)_35%,rgba(0,0,0,0)_58%,rgba(0,0,0,0)_100%)] md:block" />
+
+          {/* Mobile: contenido centrado (ambos ejes). */}
+          <div className="relative flex h-full items-center justify-center px-6 md:hidden">
+            <div className="max-w-[420px] text-center">
               <span className="inline-block border border-white/50 px-4 py-2 text-xs font-bold tracking-wide text-white">
                 AHORRA HASTA S/. 50
               </span>
-              <h2 className="font-display mt-5 text-5xl leading-[0.95] tracking-wide text-white md:text-7xl">
+              <h2 className="font-display mt-5 text-5xl leading-[0.95] tracking-wide text-white">
                 ARMA TU <span className="text-amber-400">COMBO</span>
               </h2>
               <p className="mt-2.5 mb-5 text-lg font-semibold text-white">Descubre tu perfume favorito.</p>
               <div className="mb-7 flex flex-col items-center gap-2.5">
-                <span className="text-sm text-[#e3e2df]">— Elige entre +50 perfumes</span>
-                <span className="text-sm text-[#e3e2df]">— Descuento por cada decant adicional</span>
+                <span className="flex items-center gap-2 text-sm font-bold text-[#e3e2df]">
+                  <ComboBulletIcon /> Elige entre +50 perfumes
+                </span>
+                <span className="flex items-center gap-2 text-sm font-bold text-[#e3e2df]">
+                  <ComboBulletIcon /> Descuento por cada decant adicional
+                </span>
               </div>
               <Link
                 href="/combo"
-                className="inline-block bg-[linear-gradient(to_bottom,#6b6b6b_0%,#111111_100%)] px-10 py-4 text-[13px] font-bold tracking-wide text-white"
+                className="inline-block rounded-full bg-[linear-gradient(to_bottom,#6b6b6b_0%,#111111_100%)] px-10 py-4 text-[13px] font-bold tracking-wide text-white"
               >
                 ARMA TU COMBO
               </Link>
             </div>
+          </div>
+
+          {/* Desktop: contenido anclado a la izquierda, como antes. */}
+          <div className="absolute top-1/2 left-16 hidden max-w-[520px] -translate-y-1/2 md:block">
+            <span className="inline-block border border-white/50 px-4 py-2 text-xs font-bold tracking-wide text-white">
+              AHORRA HASTA S/. 50
+            </span>
+            <h2 className="font-display mt-5 text-7xl leading-[0.95] tracking-wide text-white">
+              ARMA TU <span className="text-amber-400">COMBO</span>
+            </h2>
+            <p className="mt-2.5 mb-5 text-lg font-semibold text-white">Descubre tu perfume favorito.</p>
+            <div className="mb-7 flex flex-col gap-2.5">
+              <span className="flex items-center gap-2 text-sm font-bold text-[#e3e2df]">
+                <ComboBulletIcon /> Elige entre +50 perfumes
+              </span>
+              <span className="flex items-center gap-2 text-sm font-bold text-[#e3e2df]">
+                <ComboBulletIcon /> Descuento por cada decant adicional
+              </span>
+            </div>
+            <Link
+              href="/combo"
+              className="inline-block rounded-full bg-[linear-gradient(to_bottom,#6b6b6b_0%,#111111_100%)] px-10 py-4 text-[13px] font-bold tracking-wide text-white"
+            >
+              ARMA TU COMBO
+            </Link>
           </div>
         </div>
       </section>

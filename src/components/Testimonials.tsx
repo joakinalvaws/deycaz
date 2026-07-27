@@ -70,11 +70,22 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
 
         {/* Mobile: una sola tarjeta centrada que rota sola cada 2s (antes
             era scroll horizontal con snap, donde se alcanzaba a ver el
-            borde de la siguiente y quedaba una barra de scroll abajo).
-            Desktop: la grilla completa, sin cambios. */}
+            borde de la siguiente y quedaba una barra de scroll abajo). Las
+            4 quedan montadas y apiladas (absolute) todo el tiempo, cruzando
+            opacidad con transition-opacity — evita el corte brusco de
+            desmontar/montar por key que había antes. */}
         <div className="sm:hidden">
-          <div key={cards[index].t.id} className="mx-auto w-full max-w-[380px] animate-in fade-in duration-500">
-            <TestimonialCard t={cards[index].t} img={cards[index].img} />
+          <div className="relative mx-auto h-[380px] w-full max-w-[380px]">
+            {cards.map(({ t, img }, i) => (
+              <div
+                key={t.id}
+                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                  i === index ? "opacity-100" : "pointer-events-none opacity-0"
+                }`}
+              >
+                <TestimonialCard t={t} img={img} />
+              </div>
+            ))}
           </div>
         </div>
         <div className="hidden sm:grid sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
