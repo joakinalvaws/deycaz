@@ -37,11 +37,14 @@ export default async function HomePage() {
           en mobile la imagen queda arriba (order-1) y el texto abajo
           (order-2); en desktop el texto queda a la izquierda (md:order-1)
           y la imagen a la derecha (md:order-2), en flex-row. */}
-      {/* Centro del degradado bajado de #ffffff a #f2efe9 (pedido explícito:
-          "un poco menos de blanco del centro") — sigue siendo el punto más
-          claro (contraste contra los bordes #e8e6e1), pero ya no es blanco
-          puro. */}
-      <section className="relative -mt-28 min-h-[50vh] w-full bg-[linear-gradient(to_bottom,#e8e6e1_0%,#f2efe9_50%,#e8e6e1_100%)] px-6 pt-24 pb-6 md:px-10 md:pt-40 md:pb-10 lg:-mt-24 lg:min-h-0">
+      {/* Corrección sobre el primer intento (que bajó el centro de #ffffff a
+          un off-white): el centro se quería blanco puro tal cual. Lo que se
+          pidió es otra cosa — bordes un poco más oscuros (#e8e6e1 → #d8d6d1)
+          y que ese beige "coma" más espacio antes de llegar al blanco: se
+          agrega una meseta de 0-15%/85-100% en vez de que la transición
+          arranque desde el borde mismo, así el blanco puro queda más
+          concentrado en el centro. */}
+      <section className="relative -mt-28 min-h-[50vh] w-full bg-[linear-gradient(to_bottom,#d8d6d1_0%,#d8d6d1_15%,#ffffff_50%,#d8d6d1_85%,#d8d6d1_100%)] px-6 pt-24 pb-6 md:px-10 md:pt-40 md:pb-10 lg:-mt-24 lg:min-h-0">
         <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-3 md:flex-row md:justify-center md:gap-10 lg:gap-14">
           <div className="order-2 flex w-full flex-col items-center text-center md:order-1 md:w-auto md:items-start md:text-left">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#00c164] px-3 py-1 text-[10px] font-bold text-foreground md:gap-2 md:px-4 md:py-1.5 md:text-xs">
