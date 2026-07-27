@@ -25,6 +25,16 @@ const TARGET_TOP_RATIO = 0.3;
 const BG_DIFF_THRESHOLD = 18;
 const DETECT_SIZE = 200;
 
+// Muchas fotos de referencia de este catálogo traen el frasco Y el
+// tester chico al lado (mismo estilo que Erba Pura) — son dos manchas
+// separadas, no una sola. Medido sobre fotos reales: el tester pesa
+// 12-23% del tamaño del frasco según la foto, mientras que un elemento
+// suelto que hay que ignorar (un destello decorativo, polvo) pesa <1%.
+// Se incluye cualquier mancha de al menos este % del tamaño de la más
+// grande, no solo la más grande — si no, el recorte se calculaba
+// ignorando por completo dónde queda el tester.
+const MIN_COMPONENT_SIZE_RATIO = 0.05;
+
 export type CompressOptions = {
   /** Recompone la foto para que el producto ocupe siempre el mismo % del
    * cuadro (ver constantes de arriba), sin importar cuánto margen tenía
@@ -35,32 +45,13 @@ export type CompressOptions = {
 
 type BBox = { minX: number; minY: number; maxX: number; maxY: number };
 
-/**
- * Bbox del componente conectado más grande de píxeles "no fondo" — no de
- * TODOS los píxeles que difieren del fondo. Probado con una foto real
- * (Lattafa Eclaire) que tenía un destello decorativo suelto en una
- * esquina: tomar el bbox de todos los píxeles no-fondo incluía ese
- * destello y descentraba el recorte entero hacia esa esquina. Quedarse
- * con el componente más grande (el frasco, siempre mucho más grande que
- * cualquier elemento suelto) lo evita sin tener que reconocer qué es cada
- * cosa.
- */
-function detectBBox(data: Uint8ClampedArray, width: number, height: number): BBox | null {
-  const bgR = data[0];
-  const bgG = data[1];
-  const bgB = data[2];
-  const n = width * height;
-  const mask = new Uint8Array(n);
-  for (let i = 0; i < n; i++) {
-    const p = i * 4;
-    const diff = Math.abs(data[p] - bgR) + Math.abs(data[p + 1] - bgG) + Math.abs(data[p + 2] - bgB);
-    mask[i] = diff > BG_DIFF_THRESHOLD ? 1 : 0;
-  }
+type Component = BBox & { size: number };
 
+function findComponents(mask: Uint8Array, width: number, height: number): Component[] {
+  const n = width * height;
   const labeled = new Int8Array(n); // 0 = sin visitar, 1 = visitado
   const stack = new Int32Array(n);
-  let bestSize = 0;
-  let best: BBox | null = null;
+  const components: Component[] = [];
 
   for (let start = 0; start < n; start++) {
     if (mask[start] === 0 || labeled[start] === 1) continue;
@@ -98,13 +89,47 @@ function detectBBox(data: Uint8ClampedArray, width: number, height: number): BBo
         stack[top++] = idx + width;
       }
     }
-    if (size > bestSize) {
-      bestSize = size;
-      best = { minX, minY, maxX, maxY };
-    }
+    components.push({ minX, minY, maxX, maxY, size });
   }
 
-  return best;
+  return components;
+}
+
+/**
+ * Bbox unión de los componentes conectados de píxeles "no fondo" que sean
+ * al menos `MIN_COMPONENT_SIZE_RATIO` del tamaño del más grande — no solo
+ * el más grande, ni tampoco todos. Probado con dos fotos reales: Lattafa
+ * Eclaire tenía un destello decorativo suelto en una esquina (<1% del
+ * frasco) que si se incluía descentraba el recorte entero; Lattafa
+ * Khamrah trae el frasco Y el tester chico al lado como dos manchas
+ * separadas (12-23% del frasco según la foto, mismo estilo que Erba
+ * Pura) que si se ignoraban por completo dejaban el recorte calculado
+ * sin contemplar dónde queda el tester.
+ */
+function detectBBox(data: Uint8ClampedArray, width: number, height: number): BBox | null {
+  const bgR = data[0];
+  const bgG = data[1];
+  const bgB = data[2];
+  const n = width * height;
+  const mask = new Uint8Array(n);
+  for (let i = 0; i < n; i++) {
+    const p = i * 4;
+    const diff = Math.abs(data[p] - bgR) + Math.abs(data[p + 1] - bgG) + Math.abs(data[p + 2] - bgB);
+    mask[i] = diff > BG_DIFF_THRESHOLD ? 1 : 0;
+  }
+
+  const components = findComponents(mask, width, height);
+  if (components.length === 0) return null;
+
+  const maxSize = Math.max(...components.map((c) => c.size));
+  const kept = components.filter((c) => c.size >= maxSize * MIN_COMPONENT_SIZE_RATIO);
+
+  return {
+    minX: Math.min(...kept.map((c) => c.minX)),
+    maxX: Math.max(...kept.map((c) => c.maxX)),
+    minY: Math.min(...kept.map((c) => c.minY)),
+    maxY: Math.max(...kept.map((c) => c.maxY)),
+  };
 }
 
 /**
