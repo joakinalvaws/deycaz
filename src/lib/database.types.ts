@@ -16,6 +16,7 @@ export type Database = {
           name: string;
           subtitle: string | null;
           desde: number | null;
+          image_url: string | null;
           sort_order: number;
           created_at: string;
         };

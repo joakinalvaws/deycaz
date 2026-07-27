@@ -5,6 +5,9 @@ export type Category = {
   name: string;
   subtitle: string | null;
   desde: number | null;
+  /** Foto de fondo del tile de categoría. Si es null el tile queda con el
+   * fondo oscuro liso (ver `CategoryTile`). */
+  imageUrl: string | null;
 };
 
 export type Product = {

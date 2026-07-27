@@ -20,7 +20,6 @@ export default async function CatalogoPage() {
           <CategoryTile
             key={c.slug}
             category={c}
-            imageUrl={null}
             caption={c.slug === "promos" ? "PROMOCIONES" : `Perfumes ${c.name}`}
           />
         ))}

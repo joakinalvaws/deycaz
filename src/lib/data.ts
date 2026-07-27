@@ -38,14 +38,21 @@ function mapCategory(row: {
   name: string;
   subtitle: string | null;
   desde: number | null;
+  image_url: string | null;
 }): Category {
-  return { slug: row.slug, name: row.name, subtitle: row.subtitle, desde: row.desde };
+  return {
+    slug: row.slug,
+    name: row.name,
+    subtitle: row.subtitle,
+    desde: row.desde,
+    imageUrl: row.image_url,
+  };
 }
 
 export async function getCategories(): Promise<Category[]> {
   const { data, error } = await supabase
     .from("categories")
-    .select("slug, name, subtitle, desde")
+    .select("slug, name, subtitle, desde, image_url")
     .order("sort_order", { ascending: true });
   if (error) throw new Error(`No se pudieron cargar las categorías: ${error.message}`);
   return (data ?? []).map(mapCategory);
@@ -54,7 +61,7 @@ export async function getCategories(): Promise<Category[]> {
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
   const { data, error } = await supabase
     .from("categories")
-    .select("slug, name, subtitle, desde")
+    .select("slug, name, subtitle, desde, image_url")
     .eq("slug", slug)
     .maybeSingle();
   if (error) throw new Error(`No se pudo cargar la categoría: ${error.message}`);

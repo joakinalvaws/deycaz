@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { type ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
@@ -20,10 +21,27 @@ import type { Category } from "../types";
 
 export function CategoriesTable({ categories }: { categories: Category[] }) {
   const deleteCategory = useDeleteCategory();
-  const [editing, setEditing] = useState<Category | null>(null);
+  // Se guarda el slug y la fila se busca en `categories` en cada render, en
+  // vez de guardar una copia de la categoría: al subir la foto de fondo, la
+  // query se invalida y llega una fila nueva con la `image_url` nueva — con
+  // una copia en estado el diálogo se quedaba mostrando la foto vieja.
+  const [editingSlug, setEditingSlug] = useState<string | null>(null);
+  const editing = editingSlug ? (categories.find((c) => c.slug === editingSlug) ?? null) : null;
   const [pendingDelete, setPendingDelete] = useState<Category | null>(null);
 
   const columns: ColumnDef<Category>[] = [
+    {
+      id: "image",
+      header: "Foto",
+      cell: ({ row }) =>
+        row.original.image_url ? (
+          <div className="bg-muted relative aspect-4/3 w-14 overflow-hidden rounded">
+            <Image src={row.original.image_url} alt="" fill sizes="56px" className="object-cover" />
+          </div>
+        ) : (
+          <span className="text-muted-foreground text-xs">—</span>
+        ),
+    },
     { accessorKey: "name", header: "Nombre" },
     { accessorKey: "slug", header: "Slug" },
     { accessorKey: "subtitle", header: "Subtítulo" },
@@ -42,7 +60,7 @@ export function CategoriesTable({ categories }: { categories: Category[] }) {
             <MoreHorizontal className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setEditing(row.original)}>Editar</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setEditingSlug(row.original.slug)}>Editar</DropdownMenuItem>
             <DropdownMenuItem
               variant="destructive"
               disabled={row.original.slug === "promos"}
@@ -61,7 +79,11 @@ export function CategoriesTable({ categories }: { categories: Category[] }) {
       <DataTable columns={columns} data={categories} getRowId={(c) => c.slug} emptyMessage="Sin categorías." />
 
       {editing && (
-        <CategoryFormDialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)} category={editing} />
+        <CategoryFormDialog
+          open={!!editing}
+          onOpenChange={(open) => !open && setEditingSlug(null)}
+          category={editing}
+        />
       )}
 
       <ConfirmDialog

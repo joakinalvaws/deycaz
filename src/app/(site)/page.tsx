@@ -124,7 +124,6 @@ export default async function HomePage() {
               <div key={c.slug} className="w-[42%] flex-none snap-start sm:w-auto">
                 <CategoryTile
                   category={c}
-                  imageUrl={null}
                   caption={
                     c.slug === "promos"
                       ? "PROMOCIONES"

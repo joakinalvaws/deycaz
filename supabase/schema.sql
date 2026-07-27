@@ -9,6 +9,9 @@ create table if not exists categories (
   name        text not null,
   subtitle    text,
   desde       numeric,           -- precio "desde" mostrado en Arma tu Combo; null para 'promos'
+  -- Foto de fondo del tile de categoría (home y /catalogo). Si es null, el
+  -- tile queda con el fondo oscuro liso.
+  image_url   text,
   sort_order  int not null default 0,
   created_at  timestamptz not null default now()
 );
@@ -435,3 +438,27 @@ create policy "product_images_storage_admin_update"
 create policy "product_images_storage_admin_delete"
   on storage.objects for delete
   using (bucket_id = 'product-images' and is_admin());
+
+-- Bucket de las fotos de fondo de categoría (agregado en migración 0013).
+-- Separado del de productos porque tienen otro ciclo de vida: una sola foto
+-- por categoría, que se reemplaza a sí misma.
+insert into storage.buckets (id, name, public)
+values ('category-images', 'category-images', true)
+on conflict (id) do nothing;
+
+create policy "category_images_storage_public_read"
+  on storage.objects for select
+  using (bucket_id = 'category-images');
+
+create policy "category_images_storage_admin_insert"
+  on storage.objects for insert
+  with check (bucket_id = 'category-images' and is_admin());
+
+create policy "category_images_storage_admin_update"
+  on storage.objects for update
+  using (bucket_id = 'category-images' and is_admin())
+  with check (bucket_id = 'category-images' and is_admin());
+
+create policy "category_images_storage_admin_delete"
+  on storage.objects for delete
+  using (bucket_id = 'category-images' and is_admin());
