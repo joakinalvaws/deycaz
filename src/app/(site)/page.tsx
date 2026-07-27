@@ -104,7 +104,10 @@ export default async function HomePage() {
       <Testimonials testimonials={testimonials} />
 
       <section className="px-6 pt-16 md:px-10 md:pt-24">
-        <div className="relative mx-auto h-[420px] max-w-[1400px] overflow-hidden bg-foreground md:h-[520px]">
+        {/* -mx-6 (cancelado en md con mx-auto) para que en mobile la foto
+            llegue de borde a borde de la pantalla, ignorando el padding de
+            la sección — en desktop vuelve a estar centrada con max-width. */}
+        <div className="relative -mx-6 h-[500px] overflow-hidden bg-foreground md:mx-auto md:h-[520px] md:max-w-[1400px]">
           <Image
             src={comboBackgroundMobile}
             alt=""
@@ -125,21 +128,26 @@ export default async function HomePage() {
               que reparten el 100% del ancho) para que el negro se disipe
               justo pasado el centro. */}
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.88)_0%,rgba(0,0,0,0.55)_35%,rgba(0,0,0,0)_58%,rgba(0,0,0,0)_100%)]" />
-          <div className="absolute top-1/2 left-6 max-w-[520px] -translate-y-1/2 md:left-16">
-            <span className="inline-block border border-white/50 px-4 py-2 text-xs font-bold tracking-wide text-white">
-              AHORRA HASTA S/. 100
-            </span>
-            <h2 className="font-display mt-5 text-5xl leading-[0.95] tracking-wide text-white md:text-7xl">
-              ARMA TU COMBO
-            </h2>
-            <p className="mt-2.5 mb-5 text-lg font-semibold text-white">Descubre tu perfume favorito.</p>
-            <div className="mb-7 flex flex-col gap-2.5">
-              <span className="text-sm text-[#e3e2df]">— Elige entre +50 perfumes</span>
-              <span className="text-sm text-[#e3e2df]">— Descuento por cada decant adicional</span>
+          <div className="relative flex h-full items-center justify-center px-6">
+            <div className="max-w-[520px] text-center">
+              <span className="inline-block border border-white/50 px-4 py-2 text-xs font-bold tracking-wide text-white">
+                AHORRA HASTA S/. 50
+              </span>
+              <h2 className="font-display mt-5 text-5xl leading-[0.95] tracking-wide text-white md:text-7xl">
+                ARMA TU <span className="text-amber-400">COMBO</span>
+              </h2>
+              <p className="mt-2.5 mb-5 text-lg font-semibold text-white">Descubre tu perfume favorito.</p>
+              <div className="mb-7 flex flex-col items-center gap-2.5">
+                <span className="text-sm text-[#e3e2df]">— Elige entre +50 perfumes</span>
+                <span className="text-sm text-[#e3e2df]">— Descuento por cada decant adicional</span>
+              </div>
+              <Link
+                href="/combo"
+                className="inline-block bg-[linear-gradient(to_bottom,#6b6b6b_0%,#111111_100%)] px-10 py-4 text-[13px] font-bold tracking-wide text-white"
+              >
+                ARMA TU COMBO
+              </Link>
             </div>
-            <Link href="/combo" className="inline-block bg-white px-10 py-4 text-[13px] font-bold tracking-wide">
-              ARMA TU COMBO
-            </Link>
           </div>
         </div>
       </section>
