@@ -1,9 +1,17 @@
 import { Playfair_Display, Bebas_Neue, Inter } from "next/font/google";
 
-// Playfair Display e Inter son fuentes variables: al pasarles `weight` se
-// descarga un archivo estático por peso (Inter pedía 5, Playfair 2). Sin
-// `weight` se descarga el archivo variable, uno solo, que cubre todo el
-// rango — incluidos los pesos intermedios que Tailwind pueda pedir.
+// Playfair Display e Inter son fuentes variables y acá se piden sin
+// `weight` a propósito.
+//
+// Ojo con la razón, porque la intuitiva es falsa: sacar `weight` NO ahorra
+// descarga. Se midieron los dos builds y bajan exactamente los mismos
+// 322,788 bytes de woff2 (95,488 precargados), porque Google sirve el
+// archivo variable en ambos casos — `weight` solo cambia las reglas CSS que
+// apuntan a él. Lo que sí cambia: pasa de 43 reglas @font-face (una por
+// peso × subset de unicode) a 11, y el navegador deja de recortar los pesos
+// al más cercano declarado, así que cualquier `font-*` de Tailwind dentro
+// del rango 100–900 renderiza de verdad.
+//
 // Bebas Neue no es variable (solo existe en 400), ahí el `weight` va sí o sí.
 export const playfair = Playfair_Display({
   subsets: ["latin"],
