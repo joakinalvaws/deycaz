@@ -74,8 +74,18 @@ tipos de foto:
   clicables en la página del producto.
 
 Las fotos se comprimen solas en el navegador antes de subirse (no hace
-falta achicarlas vos antes). Mientras un producto no tenga foto, el sitio
-muestra un cuadro con "Foto próximamente" — no se rompe nada.
+falta achicarlas vos antes) y además se **recortan solas para que el
+frasco quede siempre del mismo tamaño relativo** en la foto final —
+tomando como referencia cómo se ve Erba Pura. No hace falta que vos
+dejes el mismo margen a mano en cada foto antes de subirla: si en una
+foto el frasco queda muy pegado a los bordes y en otra muy chico en el
+medio, el sitio las pareja solo para que no se vean unas "más grandes"
+que otras en la página del producto. (Funciona mejor con fondo liso de
+un solo color, como las fotos que ya tiene el catálogo — si el fondo no
+es liso, la foto se sube igual pero sin ese ajuste automático.)
+
+Mientras un producto no tenga foto, el sitio muestra un cuadro con "Foto
+próximamente" — no se rompe nada.
 
 ---
 
@@ -127,11 +137,18 @@ Admin → **Categorías** → "Nueva categoría" o clic en una existente:
 | Orden | Número para el orden en que aparecen (menor = primero) |
 | Foto de fondo | Solo al editar una categoría ya creada — la foto detrás del nombre en los tiles de inicio y `/catalogo`. Sin foto, el tile queda con fondo oscuro liso. |
 
-Una categoría nueva funciona sola en el catálogo, la página de categoría y
-"Arma tu Combo" — no hace falta ningún cambio de código. Evita renombrar o
+Una categoría nueva funciona sola en el catálogo y en la página de
+categoría — no hace falta ningún cambio de código. Evita renombrar o
 borrar la categoría `promos`: es "virtual", la página de Promociones no
 filtra por categoría, muestra automáticamente **todo producto con "En
 oferta" activado**, sin importar su categoría real.
+
+> **"Arma tu Combo" es la excepción**: ahí solo se puede elegir entre
+> Nicho, Diseñador, Árabes y Exclusivos — Damas se excluyó a propósito de
+> esa selección puntual (pedido explícito). El resto del sitio (catálogo,
+> menú, `/categoria/damas`) sigue mostrando Damas normal. Si agregás una
+> categoría nueva, sí aparece en Arma tu Combo por defecto — este filtro
+> es código, no algo que se configure desde el admin.
 
 ---
 

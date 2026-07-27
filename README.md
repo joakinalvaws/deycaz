@@ -63,7 +63,9 @@ el panel administrativo.
   un modal (`CheckoutModal.tsx`) que vive sobre cualquier página del sitio.
 - `src/app/admin/` — panel administrativo (`/admin`), protegido por
   `src/proxy.ts` (Next 16 renombró `middleware.ts` a esto). Gestión de
-  productos (con precios por tamaño e imágenes), categorías (con foto de
+  productos (con precios por tamaño e imágenes — las fotos de producto se
+  recomponen solas al subirlas para que el producto ocupe siempre el mismo
+  % del cuadro, ver `imageCompression.ts`), categorías (con foto de
   fondo), pedidos y clientes. Auth con Supabase Auth + tabla `admin_users`.
 - `src/app/actions.ts` — Server Actions públicos: `placeOrder` (crea el
   pedido vía RPC `place_order`, con topes de cantidad/líneas — ver
