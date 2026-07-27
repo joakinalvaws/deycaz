@@ -1,146 +1,149 @@
 # Guía: cómo manejar el catálogo de DEYCAZ
 
-Todo esto se hace desde el **Table Editor** de tu proyecto en
-[supabase.com](https://supabase.com) — no hace falta tocar código para nada
-de lo que está en esta guía (hay una sección al final con lo poco que **sí**
-necesita un cambio de código).
+Desde que existe el **panel administrativo** (`/admin`), esta es la forma
+normal de manejar productos, categorías, pedidos y clientes — ya no hace
+falta entrar al Table Editor de Supabase para nada de eso. Esta guía queda
+para lo poco que el admin todavía no cubre (testimonios, mensajes de
+contacto) y como referencia de qué significa cada campo.
 
-Los cambios tardan **hasta 5 minutos** en verse en el sitio (las páginas
-quedan cacheadas ese tiempo para que carguen rápido). Si necesitas que algo
-se vea al instante, avísame y lo desplegamos manualmente.
+Entra a `deycaz.store/admin/login` con tu cuenta de administrador. Los
+cambios que hagas ahí se ven **al toque** en el sitio (el admin fuerza la
+actualización); si algo lo cambia otra persona directo en Supabase Studio,
+ese cambio sí puede tardar hasta 5 minutos en verse.
 
 ---
 
 ## Quiero agregar un perfume nuevo
 
-1. Table Editor → tabla **`products`** → botón **"Insert row"**.
-2. Completa:
+Admin → **Productos** → botón **"Nuevo producto"**. El formulario tiene
+pestañas:
 
-   | Campo | Qué poner |
-   |---|---|
-   | `name` | Nombre del perfume, ej. `Dior Sauvage EDP` |
-   | `category_slug` | Una de estas 5 (exacto, en minúsculas): `nicho`, `disenador`, `arabes`, `exclusivos`, `damas`. **No uses `promos`** — ver nota abajo. |
-   | `price` | Precio base en soles, sin el `S/.` (equivale al tamaño de 5ml — el de 3ml y 10ml se calculan solos, no los toques) |
-   | `best_seller` | `true` si quieres que aparezca en "Más Vendidos" del inicio |
-   | `on_sale` | `true` solo si está en oferta (ver siguiente sección) |
-   | `active` | `true` para que se vea en la tienda |
-   | `badge` | Opcional, ej. `MÁS VENDIDO` (texto que aparece como etiqueta) |
-   | `image_url` | Déjalo vacío por ahora si no tienes la foto — ver sección de fotos |
-   | `description` | Opcional — ver sección de descripción |
+| Pestaña | Qué se carga |
+|---|---|
+| **General** | Nombre, categoría, badge (texto opcional tipo "MÁS VENDIDO") |
+| **Precio** | Precio base (5ml, obligatorio), precios de 3ml/10ml/frasco entero (opcionales), precio "antes" si está en oferta |
+| **Inventario** | Activo (visible en la tienda), Más vendido (aparece en el riel del inicio) |
+| **Imágenes** | Foto principal, foto por tamaño, galería general (ver sección de fotos) |
+| **SEO** | Descripción del producto (ver sección de descripción) |
 
-3. Guarda. Listo, en unos minutos aparece en el catálogo, en su categoría, y
-   en el buscador.
-
-> **Nota sobre `promos`:** existe una categoría llamada `promos` en la tabla
-> `categories`, pero es "virtual" — la página de Promociones no filtra por
-> categoría, muestra automáticamente **todo producto con `on_sale = true`**,
-> sin importar su categoría real. Si le pones `category_slug = promos` a un
-> producto, se vuelve invisible en el catálogo normal. Usa siempre una de
-> las 5 categorías reales, y el flag `on_sale` aparte para que salga en
-> Promociones.
+> **Sobre los precios por tamaño**: no hay ninguna fórmula automática. Si
+> no cargas un precio de 3ml, 10ml o frasco entero, ese tamaño simplemente
+> **no aparece** como opción en la página del producto ni se puede pedir —
+> no calcula nada solo. Carga el precio de cada tamaño que quieras ofrecer.
 
 ---
 
 ## Quiero cambiar el precio de un perfume
 
-Table Editor → `products` → busca la fila → doble clic en la celda `price` →
-escribe el nuevo número → Enter. Los precios de 3ml y 10ml se recalculan
-solos en cada página (70% y 170% del precio base).
+Admin → **Productos** → clic en el perfume → pestaña **Precio** → edita el
+campo que corresponda → Guardar. Se refleja al toque en el sitio.
 
 ---
 
 ## Quiero poner un perfume en oferta (que salga en Promociones)
 
-En esa fila:
-- `on_sale` → `true`
-- `original_price` → el precio anterior (el que se muestra tachado)
-- `price` → el nuevo precio con descuento
+En el formulario del producto:
+- Pestaña **Precio**: activa "En oferta", pon el precio anterior (el que se
+  muestra tachado) y el precio nuevo con descuento en el campo de precio
+  base.
 
 Aparece automáticamente en `/promociones` y puede salir destacado en el
-inicio si además es `best_seller = true`.
+inicio si además está marcado como "Más vendido".
 
 ---
 
 ## Quiero marcar un perfume como "Más Vendido"
 
-`best_seller` → `true` en esa fila. Aparece en el riel "Más Vendidos" del
-inicio (y es candidato a ser el producto del banner principal si además
-tiene `on_sale = true`).
+Pestaña **Inventario** → activa "Más vendido". Aparece en el riel "Más
+Vendidos" del inicio.
 
 ---
 
 ## Quiero subir o cambiar la foto de un perfume
 
-1. Panel de Supabase → **Storage**. Si todavía no existe, crea un bucket
-   (ej. `product-images`) y márcalo como **público**.
-2. Sube la foto ahí.
-3. Clic en el archivo subido → **"Copy URL"** (la URL pública, no la
-   privada).
-4. Table Editor → `products` → pega esa URL en la columna `image_url` de la
-   fila del perfume.
+Admin → **Productos** → clic en el perfume → pestaña **Imágenes**. Hay tres
+tipos de foto:
 
-Mientras `image_url` esté vacío, el sitio muestra un cuadro gris con
-"Foto próximamente" en su lugar — no se rompe nada, solo se ve el
-placeholder.
+- **Principal** — la que se ve en las tarjetas del catálogo y el inicio.
+  Subir/reemplazar es un solo paso (no hace falta marcarla como principal
+  aparte).
+- **Por tamaño** (3ml/5ml/10ml/frasco) — reemplaza a la principal en la
+  página del producto cuando el cliente elige ese tamaño específico. Es
+  opcional; si no la subís, se ve la principal para ese tamaño también.
+- **Galería** — fotos sueltas adicionales, aparecen como miniaturas
+  clicables en la página del producto.
+
+Las fotos se comprimen solas en el navegador antes de subirse (no hace
+falta achicarlas vos antes). Mientras un producto no tenga foto, el sitio
+muestra un cuadro con "Foto próximamente" — no se rompe nada.
 
 ---
 
 ## Quiero escribir/editar la descripción de un perfume
 
-Columna `description` en `products` — texto libre, hasta 2000 caracteres. Si
-la dejas vacía, la página del producto muestra el texto genérico de siempre
-("Decant 100% original, envasado y sellado..."). Si escribes algo, se
-muestra eso en su lugar.
+Pestaña **SEO** del producto → campo de descripción, texto libre hasta
+2000 caracteres. Se muestra en la sección desplegable "Producto" de la
+página del perfume (abierta por defecto). Si la dejás vacía, se muestra
+"Descripción disponible próximamente." en su lugar.
+
+Los saltos de línea que escribas se respetan tal cual en el sitio — podés
+usar un formato con líneas separadas, por ejemplo:
+
+```
+Dulce, juvenil y adictivo. Un clásico nocturno lleno de cumplidos.
+
+-> Ocasión: Citas, fiestas y salidas nocturnas donde quieres destacar.
+-> Notas: Manzana, vainilla, canela y ámbar.
+```
+
+(La sección "Envíos y Devoluciones" que aparece debajo, cerrada por
+defecto, es un texto fijo igual para todos los productos — no se edita
+por producto.)
 
 ---
 
 ## Quiero ocultar o eliminar un perfume
 
-- **Ocultar (recomendado):** pon `active` en `false`. Desaparece de la
-  tienda pero el historial de pedidos que ya lo incluyeron sigue intacto.
-- **Eliminar de verdad:** si el perfume nunca fue pedido, puedes borrar la
-  fila normalmente. Si **ya tiene pedidos asociados**, Supabase va a
-  **rechazar el borrado** (por seguridad, para no perder el historial de
-  ventas) — en ese caso usa `active = false` en su lugar.
+- **Ocultar (recomendado):** en el formulario del producto, pestaña
+  Inventario, desactivá "Activo". Desaparece de la tienda pero el
+  historial de pedidos que ya lo incluyeron sigue intacto.
+- **Eliminar de verdad:** desde la tabla de Productos del admin, menú de
+  acciones → Eliminar. Si el perfume **ya tiene pedidos asociados**,
+  Supabase va a **rechazar el borrado** (por seguridad, para no perder el
+  historial de ventas) — en ese caso usá "Activo = No" en su lugar.
 
 ---
 
 ## Quiero agregar o editar una categoría
 
-Table Editor → tabla **`categories`**:
+Admin → **Categorías** → "Nueva categoría" o clic en una existente:
 
 | Campo | Qué es |
 |---|---|
-| `slug` | Identificador único, sin espacios ni tildes (ej. `unisex`) — es el que va en la URL `/categoria/unisex` |
-| `name` | Nombre que se muestra (ej. `Unisex`) |
-| `subtitle` | Texto chico debajo del nombre en "Arma tu Combo" (ej. marcas destacadas) |
-| `desde` | Precio "Desde S/. X" que se muestra en Arma tu Combo |
-| `sort_order` | Número para el orden en que aparecen (menor = primero) |
+| Slug | Identificador único, sin espacios ni tildes (ej. `unisex`) — va en la URL `/categoria/unisex`. No se puede editar después de creada. |
+| Nombre | Nombre que se muestra (ej. `Unisex`) |
+| Subtítulo | Texto chico debajo del nombre en "Arma tu Combo" |
+| Precio "Desde S/." | Se muestra en Arma tu Combo |
+| Orden | Número para el orden en que aparecen (menor = primero) |
+| Foto de fondo | Solo al editar una categoría ya creada — la foto detrás del nombre en los tiles de inicio y `/catalogo`. Sin foto, el tile queda con fondo oscuro liso. |
 
 Una categoría nueva funciona sola en el catálogo, la página de categoría y
 "Arma tu Combo" — no hace falta ningún cambio de código. Evita renombrar o
-borrar la categoría `promos` (ver nota más arriba).
-
----
-
-## Quiero editar los testimonios del inicio
-
-Table Editor → tabla **`testimonials`**: `name`, `stars` (1 a 5), `text`,
-`sort_order`. Agrega, edita o borra filas libremente.
+borrar la categoría `promos`: es "virtual", la página de Promociones no
+filtra por categoría, muestra automáticamente **todo producto con "En
+oferta" activado**, sin importar su categoría real.
 
 ---
 
 ## Quiero ver los pedidos que han llegado
 
-El sitio web **no puede leer** la tabla `orders` (a propósito, por
-seguridad), pero tú sí, como dueño del proyecto:
+Admin → **Pedidos** — lista completa con filtro por estado y método de
+envío, clic en uno para ver el detalle (productos, cliente, dirección,
+total). Ahí mismo podés cambiar el estado del pedido (pendiente,
+confirmado, enviado, entregado, cancelado).
 
-- Table Editor → tabla **`orders`** para ver los datos del pedido (cliente,
-  dirección, método de envío, total, estado).
-- Tabla **`order_items`** para ver qué productos incluyó cada pedido
-  (`order_id` conecta con `orders.id`).
-
-Atajo más cómodo — en el **SQL Editor**, pega y corre:
+Si necesitás algo que la tabla no te da (un reporte puntual, por ejemplo),
+alternativa por SQL Editor de Supabase:
 
 ```sql
 select order_number, created_at, customer_name, customer_phone,
@@ -150,33 +153,42 @@ order by created_at desc
 limit 50;
 ```
 
-(`discount` es el descuento por combo aplicado a ese pedido en soles — antes
-siempre aparecía en 0, ahora sí refleja el monto real descontado.)
+---
 
-Y para ver los productos de un pedido puntual (cambia el número):
+## Quiero ver mis clientes
 
-```sql
-select oi.product_name, oi.size, oi.qty, oi.unit_price, oi.is_combo
-from order_items oi
-join orders o on o.id = oi.order_id
-where o.order_number = 1005;
-```
+Admin → **Clientes** — se arma automáticamente a partir del historial de
+pedidos (agrupado por celular), con cantidad de pedidos y total gastado por
+persona. No es una tabla propia, así que no hay nada que cargar ahí a mano.
+
+---
+
+## Quiero editar los testimonios del inicio
+
+Esto **todavía no tiene pantalla en el admin** — se hace desde el Table
+Editor de Supabase, tabla **`testimonials`**: `name`, `stars` (1 a 5),
+`text`, `sort_order`, `image_url` (opcional). Agrega, edita o borra filas
+libremente.
 
 ---
 
 ## Quiero ver los mensajes del formulario de Contacto
 
-Table Editor → tabla **`contact_messages`**. Puedes marcar `handled` en
-`true` una vez que respondiste, para llevar el control.
+Esto tampoco tiene pantalla en el admin todavía — Table Editor de
+Supabase, tabla **`contact_messages`**. Podés marcar `handled` en `true`
+una vez que respondiste, para llevar el control.
 
 ---
 
-## Lo que NO se puede cambiar desde Supabase (necesita tocar código)
+## Lo que NO se puede cambiar desde el admin ni desde Supabase (necesita tocar código)
 
-- **Número de WhatsApp y links de Instagram/TikTok** — están fijos en
-  `src/lib/constants.ts`, no en la base de datos.
-- El diseño, textos fijos de las páginas, costo de envío de Lima, reglas de
-  descuento del combo, etc.
-- Agregar un método de envío nuevo, una pasarela de pago, etc.
+- **Número de WhatsApp y links de Instagram/TikTok** — fijos en
+  `src/lib/constants.ts`.
+- El diseño, textos fijos de las páginas, costo de envío de Lima, niveles
+  de descuento de "Arma tu Combo", el texto fijo de "Envíos y Devoluciones"
+  del PDP.
+- Agregar un método de envío nuevo, una pasarela de pago, un rol de admin
+  nuevo (hoy solo existe `owner`), o un módulo nuevo del admin (testimonios,
+  mensajes de contacto).
 
-Para cualquiera de estos, dime qué quieres cambiar y lo hago yo.
+Para cualquiera de estos, dime qué querés cambiar y lo hago yo.
