@@ -223,6 +223,10 @@ $$;
 --     descuentos de todos los pares — sin término cruzado entre ellos.
 --     Tope: máximo 6 unidades por cada par (categoría, tamaño); si algún
 --     par lo supera, se rechaza el pedido completo.
+--   - Item marcado is_addon=true ("Combínalo y ahorra" del PDP de una
+--     promoción): al precio calculado arriba (combo o individual) se le
+--     resta un descuento fijo por unidad (hoy S/.10, ver ADDON_DISCOUNT en
+--     src/lib/pricing.ts), nunca por debajo de S/.0.
 --   - Envío: 'lima_delivery' gratis desde S/.250 de subtotal con descuento
 --     ya aplicado, si no S/.15.
 --     'shalom_provincia' siempre S/.0 para la tienda — el cliente paga el
@@ -353,6 +357,15 @@ begin
         when 'full' then v_product.price_full_bottle
         else v_product.price
       end;
+    end if;
+
+    -- Descuento fijo de "Combínalo y ahorra" (PDP de una promoción) — el
+    -- cliente lo agrega marcado is_addon=true, y acá se le resta el
+    -- descuento por unidad al precio ya calculado arriba (sea de combo o
+    -- individual). Mantener sincronizado con ADDON_DISCOUNT en
+    -- src/lib/pricing.ts.
+    if coalesce((v_item->>'is_addon')::boolean, false) then
+      v_unit_price := greatest(v_unit_price - 10, 0);
     end if;
 
     v_subtotal := v_subtotal + v_unit_price * (v_item->>'qty')::int;

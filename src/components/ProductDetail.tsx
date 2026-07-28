@@ -3,7 +3,15 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useCart } from "@/context/CartContext";
-import { PRODUCT_PAGE_SIZES, SPRAYS_BY_SIZE, getSizePrice, formatPEN, sizeLabel, type Size } from "@/lib/pricing";
+import {
+  ADDON_DISCOUNT,
+  PRODUCT_PAGE_SIZES,
+  SPRAYS_BY_SIZE,
+  getSizePrice,
+  formatPEN,
+  sizeLabel,
+  type Size,
+} from "@/lib/pricing";
 import { Collapsible, CollapsibleTrigger, CollapsiblePanel } from "@/components/ui/collapsible";
 import { ProductAddonPicker } from "@/components/ProductAddonPicker";
 import type { ProductAddon } from "@/lib/types";
@@ -74,7 +82,10 @@ export function ProductDetail({
 
   const currentPrice = getSizePrice(pricing, size);
   const addonsTotal = useMemo(
-    () => addons.filter((a) => selectedAddonIds.has(a.id)).reduce((sum, a) => sum + a.price, 0),
+    () =>
+      addons
+        .filter((a) => selectedAddonIds.has(a.id))
+        .reduce((sum, a) => sum + Math.max(0, a.price - ADDON_DISCOUNT), 0),
     [addons, selectedAddonIds],
   );
   const summaryTotal = (currentPrice ?? basePrice) * qty + addonsTotal;
@@ -97,12 +108,16 @@ export function ProductDetail({
         name: a.name,
         categorySlug: a.categorySlug,
         size: "5" as Size,
-        unitPrice: a.price,
+        // Precio de vista previa ya con el descuento — el servidor vuelve a
+        // calcularlo solo desde `is_addon` en place_order, nunca confía en
+        // este número (ver ADDON_DISCOUNT en pricing.ts).
+        unitPrice: Math.max(0, a.price - ADDON_DISCOUNT),
         qty: 1,
         isCombo: false,
+        isAddon: true,
       }));
     addItems([
-      { productId, name, categorySlug, size, unitPrice: currentPrice, qty, isCombo: false },
+      { productId, name, categorySlug, size, unitPrice: currentPrice, qty, isCombo: false, isAddon: false },
       ...addonItems,
     ]);
     toast.success("Producto agregado al carrito", { duration: 1500 });
@@ -115,10 +130,6 @@ export function ProductDetail({
 
   return (
     <div>
-      <div className="text-muted mb-2.5 text-[32px] font-extrabold">
-        S/. {formatPEN(currentPrice ?? basePrice)}
-      </div>
-
       <div className="text-muted mb-2.5 text-xs font-bold tracking-wide">TAMAÑO</div>
       {/* Mobile: flex-1 (todas las opciones comparten el ancho disponible y
           entran siempre en una sola fila, sin wrap) — desktop: ancho fijo

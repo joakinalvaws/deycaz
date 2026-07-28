@@ -14,7 +14,7 @@ export type PlaceOrderInput = {
   distrito: string;
   customerAddress: string;
   shalomAgency?: string;
-  items: { productId: number; size: Size; qty: number; isCombo: boolean }[];
+  items: { productId: number; size: Size; qty: number; isCombo: boolean; isAddon: boolean }[];
 };
 
 export type PlaceOrderResult = { ok: true; orderNumber: number } | { ok: false; error: string };
@@ -86,6 +86,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       size: i.size,
       qty: i.qty,
       is_combo: i.isCombo,
+      is_addon: i.isAddon,
     })),
   });
 

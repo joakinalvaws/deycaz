@@ -17,6 +17,15 @@ export const FLAT_COMBO_SIZE_PRICE: Record<ComboSize, number> = {
   "10": 75,
 };
 
+/** Descuento fijo (soles) por unidad de un producto agregado vía
+ * "Combínalo y ahorra" en el PDP de una promoción — el nombre de la
+ * sección promete un ahorro, así que el addon nunca se cobra a precio de
+ * lista. Mantener sincronizado con el chequeo de `is_addon` en
+ * `place_order()` (supabase/schema.sql /
+ * supabase/migrations/0017_addon_discount.sql), que es el cálculo
+ * autoritativo — este valor solo se usa acá para la vista previa. */
+export const ADDON_DISCOUNT = 10;
+
 export type ProductSizePricing = {
   price: number; // 5ml — precio base
   price3ml?: number | null;

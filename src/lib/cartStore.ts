@@ -15,6 +15,7 @@ export type AddItemInput = {
   unitPrice: number;
   qty?: number;
   isCombo?: boolean;
+  isAddon?: boolean;
 };
 
 type Listener = () => void;
@@ -73,7 +74,12 @@ export function subscribe(listener: Listener): () => void {
 }
 
 function sameLine(a: CartItem, b: AddItemInput) {
-  return a.productId === b.productId && a.size === b.size && a.isCombo === !!b.isCombo;
+  return (
+    a.productId === b.productId &&
+    a.size === b.size &&
+    a.isCombo === !!b.isCombo &&
+    a.isAddon === !!b.isAddon
+  );
 }
 
 export function addItems(inputs: AddItemInput[]) {
@@ -91,6 +97,7 @@ export function addItems(inputs: AddItemInput[]) {
         unitPrice: input.unitPrice,
         qty: input.qty ?? 1,
         isCombo: !!input.isCombo,
+        isAddon: !!input.isAddon,
       });
     }
   }

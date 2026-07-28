@@ -2,7 +2,7 @@
 
 import { CheckIcon } from "lucide-react";
 import { ProductImage } from "./ProductImage";
-import { formatPEN } from "@/lib/pricing";
+import { ADDON_DISCOUNT, formatPEN } from "@/lib/pricing";
 import type { ProductAddon } from "@/lib/types";
 
 /** Sección "Combínalo y ahorra" del PDP de un producto en oferta — 1-2
@@ -38,7 +38,12 @@ export function ProductAddonPicker({
               </div>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[13px] font-medium">{addon.name}</div>
-                <div className="text-muted-2 text-[12px]">+ S/. {formatPEN(addon.price)}</div>
+                <div className="text-[12px]">
+                  <span className="text-success font-semibold">
+                    + S/. {formatPEN(Math.max(0, addon.price - ADDON_DISCOUNT))}
+                  </span>{" "}
+                  <span className="text-muted-2 line-through">S/. {formatPEN(addon.price)}</span>
+                </div>
               </div>
               <span
                 className={`flex h-5 w-5 flex-none items-center justify-center rounded-full border-2 transition-colors duration-150 ${

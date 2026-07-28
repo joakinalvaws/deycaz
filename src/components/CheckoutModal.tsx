@@ -190,6 +190,7 @@ export function CheckoutModal() {
         size: i.size,
         qty: i.qty,
         isCombo: i.isCombo,
+        isAddon: i.isAddon,
       })),
     });
 

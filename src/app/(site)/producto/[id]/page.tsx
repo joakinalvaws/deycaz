@@ -136,7 +136,14 @@ export default async function ProductoPage({ params }: { params: Promise<{ id: s
     // que se veía en desktop. En mobile no pasaba porque ahí las dos
     // columnas son un solo grid-cols-1 (una debajo de la otra, no lado a
     // lado), no hay estiramiento cruzado entre ellas.
-    <section className="mx-auto grid max-w-[1200px] grid-cols-1 gap-10 px-6 py-10 md:grid-cols-2 md:items-start md:gap-16 md:px-10">
+    //
+    // max-w-[1400px] (antes 1200px) + grid-cols-[3fr_2fr] (antes 2 columnas
+    // iguales): la imagen necesitaba más ancho — las fotos de promoción
+    // muestran 3 productos en una sola toma, y a la mitad del ancho de
+    // antes se apreciaban chicos. La columna de info se achica un poco
+    // pero sigue siendo legible (~esa proporción es la misma que ya usa el
+    // resto del sitio para dar más peso visual al contenido principal).
+    <section className="mx-auto grid max-w-[1400px] grid-cols-1 gap-10 px-6 py-10 md:grid-cols-[3fr_2fr] md:items-start md:gap-12 md:px-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 

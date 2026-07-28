@@ -79,4 +79,8 @@ export type CartItem = {
   unitPrice: number;
   qty: number;
   isCombo: boolean;
+  /** true si esta línea se agregó desde "Combínalo y ahorra" en el PDP de
+   * una promoción — el servidor le resta ADDON_DISCOUNT por unidad al
+   * calcular el precio autoritativo (ver pricing.ts). */
+  isAddon: boolean;
 };
