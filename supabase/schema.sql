@@ -133,6 +133,7 @@ create table if not exists contact_messages (
   id          bigint generated always as identity primary key,
   name        text not null check (char_length(name) between 1 and 200),
   email       text not null check (char_length(email) between 3 and 200),
+  phone       text check (phone is null or char_length(phone) <= 20),
   message     text not null check (char_length(message) between 1 and 2000),
   handled     boolean not null default false,
   created_at  timestamptz not null default now()

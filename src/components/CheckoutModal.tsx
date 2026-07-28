@@ -349,7 +349,7 @@ export function CheckoutModal() {
                 }}
                 onFocus={(e) => scrollFieldIntoView(e.target)}
                 placeholder="Nombre completo"
-                maxLength={50}
+                maxLength={35}
                 className="border border-border-strong px-3.5 py-3 text-sm outline-none"
               />
               <input
@@ -485,7 +485,7 @@ export function CheckoutModal() {
                 onFocus={(e) => scrollFieldIntoView(e.target)}
                 placeholder="Dirección completa"
                 rows={2}
-                maxLength={100}
+                maxLength={60}
                 className="resize-vertical border border-border-strong px-3.5 py-3 text-sm outline-none"
               />
 
@@ -504,6 +504,7 @@ export function CheckoutModal() {
                   }}
                   onFocus={(e) => scrollFieldIntoView(e.target)}
                   placeholder="Agencia Shalom (provincia)"
+                  maxLength={60}
                   className="border border-border-strong px-3.5 py-3 text-sm outline-none"
                 />
               )}

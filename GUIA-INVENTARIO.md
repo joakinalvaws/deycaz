@@ -146,9 +146,14 @@ oferta" activado**, sin importar su categoría real.
 > **"Arma tu Combo" es la excepción**: ahí solo se puede elegir entre
 > Nicho, Diseñador, Árabes y Exclusivos — Damas se excluyó a propósito de
 > esa selección puntual (pedido explícito). El resto del sitio (catálogo,
-> menú, `/categoria/damas`) sigue mostrando Damas normal. Si agregás una
-> categoría nueva, sí aparece en Arma tu Combo por defecto — este filtro
-> es código, no algo que se configure desde el admin.
+> menú, `/categoria/damas`) sigue mostrando Damas normal. **Si agregás una
+> categoría nueva, NO aparece en Arma tu Combo por defecto** (a diferencia
+> de antes): cada categoría de Arma tu Combo necesita su propia tabla de
+> descuentos por tamaño cargada en el código
+> (`COMBO_PAIR_DISCOUNT_TABLE` en `src/lib/bundleDiscount.ts`, espejada en
+> Supabase), así que una categoría nueva sin esa tabla directamente no
+> sale como opción ahí hasta que se agregue a mano. Avisame si creás una
+> categoría que también debería vender en Arma tu Combo.
 
 ---
 
@@ -192,8 +197,14 @@ libremente.
 ## Quiero ver los mensajes del formulario de Contacto
 
 Esto tampoco tiene pantalla en el admin todavía — Table Editor de
-Supabase, tabla **`contact_messages`**. Podés marcar `handled` en `true`
-una vez que respondiste, para llevar el control.
+Supabase, tabla **`contact_messages`** (`name`, `email`, `phone`,
+`message`). Podés marcar `handled` en `true` una vez que respondiste,
+para llevar el control.
+
+Además, cada mensaje nuevo dispara un aviso por email a
+`joakinalvavega4@gmail.com` (vía Resend) — si ese email no llega pero el
+mensaje sí está en la tabla, revisá que `RESEND_API_KEY` siga configurada
+en las variables de entorno de Vercel.
 
 ---
 

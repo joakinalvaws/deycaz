@@ -123,6 +123,7 @@ export type Database = {
           id: number;
           name: string;
           email: string;
+          phone: string | null;
           message: string;
           handled: boolean;
           created_at: string;
@@ -130,6 +131,7 @@ export type Database = {
         Insert: {
           name: string;
           email: string;
+          phone?: string | null;
           message: string;
         };
         Update: Partial<Database["public"]["Tables"]["contact_messages"]["Row"]>;

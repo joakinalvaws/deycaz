@@ -115,9 +115,11 @@ export function Header({
           type="button"
           aria-label="Buscar"
           onClick={() => setSearchOpen((v) => !v)}
-          className="-m-2 bg-transparent p-2 text-2xl text-foreground"
+          className="-m-2 bg-transparent p-2 text-foreground"
         >
-          ⌕
+          <svg fill="currentColor" viewBox="0 0 512 512" className="size-5" aria-hidden="true">
+            <path d="M456.69 421.39 362.6 327.3a173.8 173.8 0 0 0 34.84-104.58C397.44 126.38 319.06 48 222.72 48S48 126.38 48 222.72s78.38 174.72 174.72 174.72A173.8 173.8 0 0 0 327.3 362.6l94.09 94.09a25 25 0 0 0 35.3-35.3M97.92 222.72a124.8 124.8 0 1 1 124.8 124.8 124.95 124.95 0 0 1-124.8-124.8" />
+          </svg>
         </button>
 
         {searchOpen && results.length > 0 && (
@@ -140,8 +142,10 @@ export function Header({
         )}
       </div>
 
-      <button type="button" aria-label="Carrito" onClick={toggleCart} className="relative -m-2 bg-transparent p-2 text-2xl text-foreground">
-        🛒
+      <button type="button" aria-label="Carrito" onClick={toggleCart} className="relative -m-2 bg-transparent p-2 text-foreground">
+        <svg fill="currentColor" viewBox="0 0 16 16" className="size-5" aria-hidden="true">
+          <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5M3.102 4l1.313 7h8.17l1.313-7zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4m-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2m7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2" />
+        </svg>
         <span className="absolute top-0 right-0 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-white">
           {count}
         </span>

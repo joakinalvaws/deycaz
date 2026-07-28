@@ -3,6 +3,7 @@
 import { supabase } from "@/lib/supabase";
 import type { Size } from "@/lib/pricing";
 import type { ShippingMethod } from "@/lib/shipping";
+import { sendContactNotificationEmail } from "@/lib/email";
 
 export type PlaceOrderInput = {
   customerName: string;
@@ -95,27 +96,32 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
   return { ok: true, orderNumber: data as number };
 }
 
-export type SubmitContactInput = { name: string; email: string; message: string };
+export type SubmitContactInput = { name: string; email: string; phone: string; message: string };
 export type SubmitContactResult = { ok: true } | { ok: false; error: string };
 
 // Espejan los `check (char_length(...))` de la tabla contact_messages en
 // supabase/schema.sql. Sin esto, un POST directo al Server Action con un
 // mensaje de 100k caracteres solo se frenaba en Postgres y volvía como
 // "no pudimos enviar tu mensaje", sin decir qué pasó.
-const MAX_CONTACT_NAME = 200;
-const MAX_CONTACT_EMAIL = 200;
-const MAX_CONTACT_MESSAGE = 2000;
+const MAX_CONTACT_NAME = 35;
+const MAX_CONTACT_EMAIL = 30;
+const MAX_CONTACT_PHONE = 15;
+const MAX_CONTACT_MESSAGE = 150;
 
 export async function submitContact(input: SubmitContactInput): Promise<SubmitContactResult> {
   const name = String(input.name ?? "").trim();
   const email = String(input.email ?? "").trim();
+  const phone = String(input.phone ?? "").trim();
   const message = String(input.message ?? "").trim();
 
-  if (!name || !email || !message) {
+  if (!name || !email || !phone || !message) {
     return { ok: false, error: "Completa todos los campos." };
   }
   if (name.length > MAX_CONTACT_NAME || email.length > MAX_CONTACT_EMAIL) {
     return { ok: false, error: "El nombre o el email son demasiado largos." };
+  }
+  if (phone.length > MAX_CONTACT_PHONE) {
+    return { ok: false, error: `El número no puede pasar de ${MAX_CONTACT_PHONE} caracteres.` };
   }
   if (message.length > MAX_CONTACT_MESSAGE) {
     return { ok: false, error: `El mensaje no puede pasar de ${MAX_CONTACT_MESSAGE} caracteres.` };
@@ -128,9 +134,12 @@ export async function submitContact(input: SubmitContactInput): Promise<SubmitCo
     return { ok: false, error: "Ingresa un email válido." };
   }
 
-  const { error } = await supabase.from("contact_messages").insert({ name, email, message });
+  const { error } = await supabase.from("contact_messages").insert({ name, email, phone, message });
   if (error) {
     return { ok: false, error: "No pudimos enviar tu mensaje. Intenta de nuevo." };
   }
+
+  await sendContactNotificationEmail({ name, email, phone, message });
+
   return { ok: true };
 }

@@ -6,6 +6,7 @@ import { submitContact } from "@/app/actions";
 export function ContactForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
@@ -21,7 +22,7 @@ export function ContactForm() {
     e.preventDefault();
     setError(null);
     startTransition(async () => {
-      const result = await submitContact({ name, email, message });
+      const result = await submitContact({ name, email, phone, message });
       if (!result.ok) {
         setError(result.error);
         return;
@@ -32,12 +33,11 @@ export function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
-      {/* Los maxLength espejan los límites de `submitContact` y los
-          `check (char_length(...))` de la tabla — así el corte se ve al
-          tipear en vez de rebotar recién al enviar. */}
+      {/* Los maxLength espejan los límites de `submitContact` en
+          src/app/actions.ts (la validación autoritativa). */}
       <input
         required
-        maxLength={200}
+        maxLength={35}
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="Nombre completo"
@@ -46,15 +46,24 @@ export function ContactForm() {
       <input
         required
         type="email"
-        maxLength={200}
+        maxLength={30}
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="Email"
         className="border border-border-strong px-3.5 py-3.5 text-[13px] outline-none"
       />
+      <input
+        required
+        type="tel"
+        maxLength={15}
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        placeholder="Número"
+        className="border border-border-strong px-3.5 py-3.5 text-[13px] outline-none"
+      />
       <textarea
         required
-        maxLength={2000}
+        maxLength={150}
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Mensaje"
