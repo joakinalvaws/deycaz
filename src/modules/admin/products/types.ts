@@ -12,6 +12,8 @@ export type Product = {
   on_sale: boolean;
   image_url: string | null;
   description: string | null;
+  addon_product_id_1: number | null;
+  addon_product_id_2: number | null;
   active: boolean;
   created_at: string;
 };

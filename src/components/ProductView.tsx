@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ProductImage } from "./ProductImage";
 import { ProductDetail } from "./ProductDetail";
-import type { ProductImage as ProductImageData } from "@/lib/types";
+import type { ProductAddon, ProductImage as ProductImageData } from "@/lib/types";
 import type { Size } from "@/lib/pricing";
 
 export function ProductView({
@@ -17,6 +18,8 @@ export function ProductView({
   description,
   fallbackImageUrl,
   images,
+  onSale,
+  addons,
   children,
 }: {
   productId: number;
@@ -29,27 +32,15 @@ export function ProductView({
   description: string | null;
   fallbackImageUrl: string | null;
   images: ProductImageData[];
+  onSale: boolean;
+  addons: ProductAddon[];
   children?: React.ReactNode;
 }) {
   const [size, setSize] = useState<Size>("5");
-  // Miniatura elegida a mano por el cliente — mientras esté activa, manda
-  // sobre la foto del tamaño elegido. Se limpia al cambiar de tamaño para
-  // que ese tamaño vuelva a decidir cuál es la foto principal.
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-  function handleSizeChange(newSize: Size) {
-    setSize(newSize);
-    setPreviewUrl(null);
-  }
-
-  // Foto propia del tamaño elegido si existe; si no, la principal de
-  // siempre (products.image_url) — nunca queda sin imagen.
-  const sizeImageUrl = images.find((img) => img.sizeTag === size)?.url;
-  const mainImageUrl = previewUrl ?? sizeImageUrl ?? fallbackImageUrl;
 
   // Todas las fotos del producto (principal + por tamaño + galería), sin
-  // duplicados, para armar la tira de miniaturas — "los demás" son todas
-  // las que no sean, en este momento, la que se ve como central.
+  // duplicados — array único que arma tanto la foto activa como la tira de
+  // miniaturas.
   const allImages = useMemo(() => {
     const seen = new Set<string>();
     const list: string[] = [];
@@ -66,40 +57,93 @@ export function ProductView({
     return list;
   }, [images, fallbackImageUrl]);
 
-  const thumbnails = allImages.filter((url) => url !== mainImageUrl);
+  // Arranca en la foto propia de 5ml (tamaño por defecto) si existe, si no
+  // en la primera — nunca queda sin imagen mientras allImages no esté vacío.
+  const [activeIndex, setActiveIndex] = useState(() => {
+    const sizeUrl = images.find((img) => img.sizeTag === "5")?.url;
+    const idx = sizeUrl ? allImages.indexOf(sizeUrl) : -1;
+    return idx !== -1 ? idx : 0;
+  });
+
+  const mainImageUrl = allImages[activeIndex] ?? fallbackImageUrl ?? null;
+
+  function handleSizeChange(newSize: Size) {
+    setSize(newSize);
+    // Si el tamaño elegido tiene foto propia, la foto activa salta ahí; si
+    // no, se queda como está (antes: sin foto propia, mainImageUrl caía
+    // solo al fallback — acá el fallback ya vive dentro de allImages, así
+    // que no cambiar el índice logra el mismo resultado).
+    const sizeUrl = images.find((img) => img.sizeTag === newSize)?.url;
+    if (!sizeUrl) return;
+    const idx = allImages.indexOf(sizeUrl);
+    if (idx !== -1) setActiveIndex(idx);
+  }
+
+  function goToPrev() {
+    setActiveIndex((i) => (i - 1 + allImages.length) % allImages.length);
+  }
+  function goToNext() {
+    setActiveIndex((i) => (i + 1) % allImages.length);
+  }
 
   return (
     <>
-      {/* Mismo patrón order-1/order-2 + md:order-* que el hero de home
-          (src/app/(site)/page.tsx): un solo JSX, se invierte el orden
-          visual por breakpoint. Mobile: imagen arriba, miniaturas abajo en
-          fila con scroll horizontal. Desktop (md:, mismo breakpoint que ya
-          usa el grid de esta página en producto/[id]/page.tsx): miniaturas
-          en columna a la izquierda, como antes. */}
-      {/* md:items-start: sin esto, si la columna de miniaturas termina más
-          alta que el cuadro de la imagen (varias fotos apiladas, hasta
-          520px), el align-items:stretch por defecto de este flex-row
-          estira igual el <div aspect-square> de la imagen — mismo problema
-          que se cerró en producto/[id]/page.tsx a nivel del grid externo,
-          acá puede repetirse un nivel más adentro. */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-start">
-        {thumbnails.length > 0 && (
-          <div className="order-2 flex w-full flex-row gap-2 overflow-x-auto md:order-1 md:max-h-[520px] md:w-20 md:flex-none md:flex-col md:overflow-x-visible md:overflow-y-auto">
-            {thumbnails.map((url, i) => (
+      {/* Imagen a la altura del viewport en desktop (del nav al piso de la
+          pantalla) — las miniaturas quedan siempre debajo, fuera de vista
+          hasta hacer scroll. 9.5rem/8.5rem = el mismo padding de header que
+          ya reserva <main> (pt-28/lg:pt-24 en src/app/(site)/layout.tsx,
+          7rem/6rem) + el py-10 (2.5rem) propio de la sección del PDP. El
+          breakpoint es lg (no md, que es donde esta página arma sus 2
+          columnas) porque el header recién baja a 1 fila en lg — usar md
+          aplicaría el offset de escritorio una franja de ancho antes de
+          tiempo, con el header todavía en su modo mobile de 2 filas. */}
+      <div className="flex flex-col">
+        <div className="relative h-[calc(100dvh-9.5rem)] w-full bg-cream lg:h-[calc(100dvh-8.5rem)]">
+          <ProductImage
+            src={mainImageUrl}
+            alt={name}
+            sizes="(min-width: 768px) 50vw, 100vw"
+            priority
+            fit="contain"
+          />
+          {allImages.length > 1 && (
+            <>
               <button
-                key={i}
                 type="button"
-                onClick={() => setPreviewUrl(url)}
-                className="border-border-strong relative aspect-square w-16 flex-none overflow-hidden border bg-cream md:w-full"
+                aria-label="Foto anterior"
+                onClick={goToPrev}
+                className="absolute top-1/2 left-3 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/70 text-foreground backdrop-blur-sm transition-colors duration-150 hover:bg-white/90 md:h-12 md:w-12"
+              >
+                <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
+              </button>
+              <button
+                type="button"
+                aria-label="Foto siguiente"
+                onClick={goToNext}
+                className="absolute top-1/2 right-3 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/70 text-foreground backdrop-blur-sm transition-colors duration-150 hover:bg-white/90 md:h-12 md:w-12"
+              >
+                <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
+              </button>
+            </>
+          )}
+        </div>
+
+        {allImages.length > 1 && (
+          <div className="mt-3 flex w-full flex-row gap-2 overflow-x-auto">
+            {allImages.map((url, i) => (
+              <button
+                key={url}
+                type="button"
+                onClick={() => setActiveIndex(i)}
+                className={`relative aspect-square w-16 flex-none overflow-hidden border-2 bg-cream md:w-20 ${
+                  i === activeIndex ? "border-foreground" : "border-border-strong"
+                }`}
               >
                 <ProductImage src={url} alt={name} sizes="80px" />
               </button>
             ))}
           </div>
         )}
-        <div className="relative order-1 aspect-square min-w-0 bg-cream md:order-2 md:flex-1">
-          <ProductImage src={mainImageUrl} alt={name} sizes="(min-width: 768px) 50vw, 100vw" priority />
-        </div>
       </div>
 
       <div>
@@ -117,6 +161,8 @@ export function ProductView({
           description={description}
           size={size}
           onSizeChange={handleSizeChange}
+          onSale={onSale}
+          addons={addons}
         />
 
         {children}

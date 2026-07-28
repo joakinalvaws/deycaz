@@ -25,6 +25,10 @@ export const productSchema = z
     best_seller: z.boolean(),
     active: z.boolean(),
     description: z.string().trim().max(2000).nullable().optional(),
+    // Productos recomendados para "Combínalo y ahorra" — solo se usan
+    // cuando on_sale=true (ver ProductForm).
+    addon_product_id_1: z.number().int().positive().nullable().optional(),
+    addon_product_id_2: z.number().int().positive().nullable().optional(),
   })
   .refine((data) => !data.on_sale || (data.original_price != null && data.original_price > data.price), {
     message: "Si está en oferta, el precio anterior debe ser mayor al precio actual.",
@@ -46,4 +50,6 @@ export const PRODUCT_FORM_DEFAULTS: ProductFormValues = {
   best_seller: false,
   active: true,
   description: null,
+  addon_product_id_1: null,
+  addon_product_id_2: null,
 };

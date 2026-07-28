@@ -44,6 +44,12 @@ create table if not exists products (
   image_url       text,          -- null => el frontend usa un placeholder
   -- null => la página de producto muestra el texto genérico de siempre.
   description     text check (description is null or char_length(description) <= 2000),
+  -- Hasta 2 productos "recomendados" para la sección "Combínalo y ahorra"
+  -- del PDP (solo se muestra si on_sale=true y al menos uno está seteado).
+  addon_product_id_1 bigint references products(id) on delete set null
+    check (addon_product_id_1 is null or addon_product_id_1 <> id),
+  addon_product_id_2 bigint references products(id) on delete set null
+    check (addon_product_id_2 is null or addon_product_id_2 <> id),
   active          boolean not null default true,
   created_at      timestamptz not null default now()
 );

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import {
   getAllProducts,
   getCategoryBySlug,
+  getProductAddons,
   getProductById,
   getProductImages,
   getProductsByCategory,
@@ -72,10 +73,13 @@ export default async function ProductoPage({ params }: { params: Promise<{ id: s
   // memoria para quedarse con 4). `getCategoryBySlug` es solo para el
   // nombre legible del breadcrumb (el JSON-LD de categoría de abajo usaba
   // el slug crudo).
-  const [sameCategory, images, category] = await Promise.all([
+  const [sameCategory, images, category, addons] = await Promise.all([
     getProductsByCategory(product.categorySlug),
     getProductImages(productId),
     getCategoryBySlug(product.categorySlug),
+    product.onSale && (product.addonProductId1 != null || product.addonProductId2 != null)
+      ? getProductAddons(product)
+      : Promise.resolve([]),
   ]);
   const related = sameCategory.filter((p) => p.id !== product.id).slice(0, 4);
 
@@ -147,6 +151,8 @@ export default async function ProductoPage({ params }: { params: Promise<{ id: s
         description={product.description}
         fallbackImageUrl={product.imageUrl}
         images={images}
+        onSale={product.onSale}
+        addons={addons}
       >
         {related.length > 0 && (
           <div className="mt-9">

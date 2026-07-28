@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCategories } from "@/modules/admin/categories/hooks/useCategories";
-import { useCreateProduct, useUpdateProduct } from "../hooks/useProducts";
+import { useCreateProduct, useProducts, useUpdateProduct } from "../hooks/useProducts";
 import { productSchema, PRODUCT_FORM_DEFAULTS, type ProductFormValues } from "../schemas/product";
 import type { Product } from "../types";
 import { ProductImagesTab } from "./ProductImagesTab";
@@ -49,6 +49,7 @@ function NullableNumberField({
 export function ProductForm({ product }: { product?: Product }) {
   const router = useRouter();
   const { data: categories } = useCategories();
+  const { data: allProducts } = useProducts({ onlyActive: true });
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct(product?.id ?? 0);
 
@@ -74,6 +75,8 @@ export function ProductForm({ product }: { product?: Product }) {
           best_seller: product.best_seller,
           active: product.active,
           description: product.description,
+          addon_product_id_1: product.addon_product_id_1,
+          addon_product_id_2: product.addon_product_id_2,
         }
       : PRODUCT_FORM_DEFAULTS,
   });
@@ -205,6 +208,75 @@ export function ProductForm({ product }: { product?: Product }) {
                 Es lo que costaba este mismo decant de 5ml antes de la oferta — misma escala que el
                 &quot;Precio 5ml&quot; de arriba. No pongas acá el precio del frasco completo (para eso está
                 &quot;Precio frasco entero&quot; en esta misma pestaña).
+              </p>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <Label>Producto recomendado 1</Label>
+                  <Controller
+                    control={control}
+                    name="addon_product_id_1"
+                    render={({ field }) => {
+                      const addon2 = watch("addon_product_id_2");
+                      const options = (allProducts ?? []).filter(
+                        (p) => p.id !== product?.id && p.id !== addon2,
+                      );
+                      return (
+                        <Select
+                          value={field.value != null ? String(field.value) : "none"}
+                          onValueChange={(v) => field.onChange(v === "none" ? null : Number(v))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Ninguno" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Ninguno</SelectItem>
+                            {options.map((p) => (
+                              <SelectItem key={p.id} value={String(p.id)}>
+                                {p.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      );
+                    }}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label>Producto recomendado 2</Label>
+                  <Controller
+                    control={control}
+                    name="addon_product_id_2"
+                    render={({ field }) => {
+                      const addon1 = watch("addon_product_id_1");
+                      const options = (allProducts ?? []).filter(
+                        (p) => p.id !== product?.id && p.id !== addon1,
+                      );
+                      return (
+                        <Select
+                          value={field.value != null ? String(field.value) : "none"}
+                          onValueChange={(v) => field.onChange(v === "none" ? null : Number(v))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Ninguno" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Ninguno</SelectItem>
+                            {options.map((p) => (
+                              <SelectItem key={p.id} value={String(p.id)}>
+                                {p.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      );
+                    }}
+                  />
+                </div>
+              </div>
+              <p className="text-muted-foreground -mt-2 text-xs">
+                Aparecen en la sección &quot;Combínalo y ahorra&quot; de este producto, a su propio precio
+                de 5ml.
               </p>
             </div>
           )}

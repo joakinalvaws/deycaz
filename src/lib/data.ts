@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { Category, Product, ProductImage, ProductSearchEntry, Testimonial } from "./types";
+import type { Category, Product, ProductAddon, ProductImage, ProductSearchEntry, Testimonial } from "./types";
 
 function mapProduct(row: {
   id: number;
@@ -15,6 +15,10 @@ function mapProduct(row: {
   on_sale: boolean;
   image_url: string | null;
   description: string | null;
+  // Opcionales: solo getProductById los pide (ver comentario ahí) — las
+  // otras 4 consultas de producto no los necesitan y no pagan ese costo.
+  addon_product_id_1?: number | null;
+  addon_product_id_2?: number | null;
 }): Product {
   return {
     id: row.id,
@@ -30,6 +34,8 @@ function mapProduct(row: {
     onSale: row.on_sale,
     imageUrl: row.image_url,
     description: row.description,
+    addonProductId1: row.addon_product_id_1 ?? null,
+    addonProductId2: row.addon_product_id_2 ?? null,
   };
 }
 
@@ -95,12 +101,43 @@ export async function getProductById(id: number): Promise<Product | null> {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, name, category_slug, price, price_3ml, price_10ml, price_full_bottle, original_price, badge, best_seller, on_sale, image_url, description",
+      "id, name, category_slug, price, price_3ml, price_10ml, price_full_bottle, original_price, badge, best_seller, on_sale, image_url, description, addon_product_id_1, addon_product_id_2",
     )
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(`No se pudo cargar el producto: ${error.message}`);
   return data ? mapProduct(data) : null;
+}
+
+/** Los 1-2 productos "recomendados" (Combínalo y ahorra) de un producto en
+ * oferta — consulta separada del pipeline de mapProduct/Product, igual que
+ * getProductImages: solo la pide la página de un producto individual,
+ * nunca ninguna vista de lista. */
+export async function getProductAddons(product: Product): Promise<ProductAddon[]> {
+  const ids = [product.addonProductId1, product.addonProductId2].filter(
+    (id): id is number => id != null,
+  );
+  if (ids.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, name, category_slug, price, image_url")
+    .in("id", ids);
+  if (error) throw new Error(`No se pudieron cargar los productos recomendados: ${error.message}`);
+
+  // .in() no garantiza el orden — se reordena según
+  // addonProductId1/addonProductId2, y se descartan ids que ya no existan
+  // o estén inactivos (RLS los excluye solo).
+  return ids
+    .map((id) => data?.find((row) => row.id === id))
+    .filter((row): row is NonNullable<typeof row> => !!row)
+    .map((row) => ({
+      id: row.id,
+      name: row.name,
+      categorySlug: row.category_slug,
+      price: row.price,
+      imageUrl: row.image_url,
+    }));
 }
 
 export async function getProductsByCategory(categorySlug: string): Promise<Product[]> {

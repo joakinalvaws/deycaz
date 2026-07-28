@@ -24,6 +24,20 @@ export type Product = {
   onSale: boolean;
   imageUrl: string | null;
   description: string | null;
+  /** Hasta 2 productos recomendados para "Combínalo y ahorra" en el PDP —
+   * solo se usan cuando `onSale` es true. Null si no hay configurado. */
+  addonProductId1: number | null;
+  addonProductId2: number | null;
+};
+
+/** Producto recomendado resuelto (solo lo que necesita "Combínalo y
+ * ahorra": imagen, nombre, precio de 5ml) — ver `getProductAddons`. */
+export type ProductAddon = {
+  id: number;
+  name: string;
+  categorySlug: string;
+  price: number;
+  imageUrl: string | null;
 };
 
 /** Lo mínimo que necesita el buscador del header: nombre para filtrar,

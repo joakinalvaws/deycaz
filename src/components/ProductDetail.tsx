@@ -3,8 +3,10 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useCart } from "@/context/CartContext";
-import { PRODUCT_PAGE_SIZES, getSizePrice, formatPEN, type Size } from "@/lib/pricing";
+import { PRODUCT_PAGE_SIZES, SPRAYS_BY_SIZE, getSizePrice, formatPEN, sizeLabel, type Size } from "@/lib/pricing";
 import { Collapsible, CollapsibleTrigger, CollapsiblePanel } from "@/components/ui/collapsible";
+import { ProductAddonPicker } from "@/components/ProductAddonPicker";
+import type { ProductAddon } from "@/lib/types";
 
 const NO_DESCRIPTION_FALLBACK = "Descripción disponible próximamente.";
 
@@ -43,6 +45,8 @@ export function ProductDetail({
   description,
   size,
   onSizeChange,
+  onSale,
+  addons,
 }: {
   productId: number;
   name: string;
@@ -56,6 +60,9 @@ export function ProductDetail({
   // acá también decide qué foto se muestra en la columna de imagen.
   size: Size;
   onSizeChange: (size: Size) => void;
+  // "Combínalo y ahorra" — solo se muestra si onSale y hay al menos un addon.
+  onSale: boolean;
+  addons: ProductAddon[];
 }) {
   const pricing = { price: basePrice, price3ml, price10ml, priceFullBottle };
   const availableSizes = useMemo(() => {
@@ -64,22 +71,46 @@ export function ProductDetail({
   }, [basePrice, price3ml, price10ml, priceFullBottle]);
 
   const [qty, setQty] = useState(1);
-  // Un solo lock para los dos botones: ambos disparan el mismo addItem, y
+  // Un solo lock para los dos botones: ambos disparan el mismo addItems, y
   // un timer compartido evita una carrera si se clickea uno y después el
   // otro dentro de la ventana de 1.5s. El toast usa la misma duración para
   // que desaparezca justo cuando el botón se vuelve a habilitar.
   const [locked, setLocked] = useState(false);
-  const { addItem, openCheckout } = useCart();
+  const [selectedAddonIds, setSelectedAddonIds] = useState<Set<number>>(new Set());
+  const { addItems, openCheckout } = useCart();
 
   const currentPrice = getSizePrice(pricing, size);
 
+  function toggleAddon(id: number) {
+    setSelectedAddonIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
   function handleAdd(openCheckoutAfter: boolean) {
     if (currentPrice == null || locked) return;
-    addItem({ productId, name, categorySlug, size, unitPrice: currentPrice, qty });
+    const addonItems = addons
+      .filter((a) => selectedAddonIds.has(a.id))
+      .map((a) => ({
+        productId: a.id,
+        name: a.name,
+        categorySlug: a.categorySlug,
+        size: "5" as Size,
+        unitPrice: a.price,
+        qty: 1,
+        isCombo: false,
+      }));
+    addItems([
+      { productId, name, categorySlug, size, unitPrice: currentPrice, qty, isCombo: false },
+      ...addonItems,
+    ]);
     toast.success("Producto agregado al carrito", { duration: 1500 });
     setLocked(true);
     setTimeout(() => setLocked(false), 1500);
-    // addItem ya NO abre el carrito (ver CartContext.tsx) — el toast es la
+    // addItems ya NO abre el carrito (ver CartContext.tsx) — el toast es la
     // única confirmación. Acá solo hace falta abrir el checkout.
     if (openCheckoutAfter) openCheckout();
   }
@@ -91,33 +122,65 @@ export function ProductDetail({
       </div>
 
       <div className="text-muted mb-2.5 text-xs font-bold tracking-wide">TAMAÑO</div>
-      <div className="mb-7 flex gap-3 pt-2.5">
-        {availableSizes.map((sz) => (
-          <button
-            key={sz}
-            type="button"
-            onClick={() => onSizeChange(sz)}
-            className={`relative flex-1 border py-4 text-center ${
-              size === sz ? "border-foreground bg-foreground text-white" : "border-border-strong bg-white"
-            }`}
-          >
-            {/* 5ml es el tamaño base (siempre disponible, todo producto lo
-                tiene) — se destaca para llamar la atención hacia esa
-                opción, no depende del flag best_seller del producto (eso
-                controla qué PRODUCTOS aparecen en el carrusel de home, acá
-                es sobre el TAMAÑO). Mismo verde/estilo que el badge
-                "★ MÁS VENDIDO" del hero, para que se lea como la misma
-                seña visual en todo el sitio. */}
-            {sz === "5" && (
-              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-[#00c164] px-2 py-0.5 text-[9px] font-bold whitespace-nowrap text-foreground">
-                MÁS VENDIDO
+      <div role="radiogroup" aria-label="Tamaño" className="mb-7 flex flex-wrap gap-5 pt-2.5">
+        {availableSizes.map((sz) => {
+          const isSelected = size === sz;
+          return (
+            <label
+              key={sz}
+              className={`relative flex w-[135px] flex-none cursor-pointer flex-col items-center gap-2 border-2 px-5 py-6 text-center transition-all duration-150 ease-out has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-foreground ${
+                isSelected
+                  ? "border-foreground bg-white shadow-[0_2px_10px_rgba(0,0,0,0.10)]"
+                  : "border-border-strong bg-white hover:border-foreground/40"
+              }`}
+            >
+              <input
+                type="radio"
+                name={`product-size-${productId}`}
+                value={sz}
+                checked={isSelected}
+                onChange={() => onSizeChange(sz)}
+                className="sr-only"
+              />
+
+              {/* 5ml es el tamaño base (siempre disponible, todo producto lo
+                  tiene) — se destaca para llamar la atención hacia esa
+                  opción, no depende del flag best_seller del producto (eso
+                  controla qué PRODUCTOS aparecen en el carrusel de home, acá
+                  es sobre el TAMAÑO). Mismo verde/estilo que el badge
+                  "★ MÁS VENDIDO" del hero, para que se lea como la misma
+                  seña visual en todo el sitio. */}
+              {sz === "5" && (
+                <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-[#00c164] px-2 py-0.5 text-[9px] font-bold whitespace-nowrap text-foreground">
+                  MÁS VENDIDO
+                </span>
+              )}
+
+              <span
+                className={`flex h-4 w-4 items-center justify-center rounded-full border-2 transition-colors duration-150 ${
+                  isSelected ? "border-foreground" : "border-border-strong"
+                }`}
+              >
+                <span
+                  className={`h-2 w-2 rounded-full bg-foreground transition-transform duration-150 ${
+                    isSelected ? "scale-100" : "scale-0"
+                  }`}
+                />
               </span>
-            )}
-            <div className="text-[15px] font-extrabold">{SIZE_LABEL[sz]}</div>
-            <div className="mt-1 text-[11px]">S/. {formatPEN(getSizePrice(pricing, sz) ?? 0)}</div>
-          </button>
-        ))}
+
+              <div className="text-[15px] font-extrabold">{SIZE_LABEL[sz]}</div>
+              <div className="text-[13px] font-semibold">S/. {formatPEN(getSizePrice(pricing, sz) ?? 0)}</div>
+              <div className="text-muted-2 text-[11px]">
+                {sz === "full" ? sizeLabel(sz) : `${SPRAYS_BY_SIZE[sz]} sprays aprox.`}
+              </div>
+            </label>
+          );
+        })}
       </div>
+
+      {onSale && addons.length > 0 && (
+        <ProductAddonPicker addons={addons} selectedIds={selectedAddonIds} onToggle={toggleAddon} />
+      )}
 
       <div className="mb-4 flex gap-3">
         <div className="flex items-center gap-2.5 border border-border-strong px-1">

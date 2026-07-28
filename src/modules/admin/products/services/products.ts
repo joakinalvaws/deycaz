@@ -25,6 +25,8 @@ export type ProductInput = {
   on_sale: boolean;
   active: boolean;
   description?: string | null;
+  addon_product_id_1?: number | null;
+  addon_product_id_2?: number | null;
 };
 
 export async function listProducts(filters: ProductFilters = {}): Promise<Product[]> {
