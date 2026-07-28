@@ -5,15 +5,11 @@ export function ProductImage({
   alt,
   sizes = "260px",
   priority = false,
-  fit = "cover",
 }: {
   src: string | null;
   alt: string;
   sizes?: string;
   priority?: boolean;
-  /** "contain" para cajas muy altas (ej. imagen principal del PDP) donde
-   * "cover" recortaría el frasco en vez de mostrarlo entero. */
-  fit?: "cover" | "contain";
 }) {
   if (!src) {
     return (
@@ -26,13 +22,6 @@ export function ProductImage({
   }
 
   return (
-    <Image
-      src={src}
-      alt={alt}
-      fill
-      sizes={sizes}
-      priority={priority}
-      className={fit === "contain" ? "object-contain" : "object-cover"}
-    />
+    <Image src={src} alt={alt} fill sizes={sizes} priority={priority} className="object-cover" />
   );
 }

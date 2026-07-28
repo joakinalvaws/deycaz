@@ -88,23 +88,25 @@ export function ProductView({
 
   return (
     <>
-      {/* Imagen a la altura del viewport en desktop (del nav al piso de la
-          pantalla) — las miniaturas quedan siempre debajo, fuera de vista
-          hasta hacer scroll. 9.5rem/8.5rem = el mismo padding de header que
-          ya reserva <main> (pt-28/lg:pt-24 en src/app/(site)/layout.tsx,
-          7rem/6rem) + el py-10 (2.5rem) propio de la sección del PDP. El
-          breakpoint es lg (no md, que es donde esta página arma sus 2
-          columnas) porque el header recién baja a 1 fila en lg — usar md
-          aplicaría el offset de escritorio una franja de ancho antes de
-          tiempo, con el header todavía en su modo mobile de 2 filas. */}
+      {/* Mobile: card cuadrado como antes (no a pantalla completa — pedido
+          explícito del usuario, se veía mejor así). Desktop: imagen a la
+          altura del viewport (del nav al piso de la pantalla) — las
+          miniaturas quedan siempre debajo, fuera de vista hasta hacer
+          scroll. 8.5rem = el mismo padding de header que ya reserva <main>
+          (lg:pt-24 en src/app/(site)/layout.tsx, 6rem) + el py-10 (2.5rem)
+          propio de la sección del PDP. El breakpoint es lg (no md, que es
+          donde esta página arma sus 2 columnas) porque el header recién
+          baja a 1 fila en lg — usar md aplicaría el offset de escritorio
+          una franja de ancho antes de tiempo, con el header todavía en su
+          modo mobile de 2 filas. `object-cover` (no "contain"): se pidió
+          que la foto cubra todo el card sin dejar espacio arriba/abajo. */}
       <div className="flex flex-col">
-        <div className="relative h-[calc(100dvh-9.5rem)] w-full bg-cream lg:h-[calc(100dvh-8.5rem)]">
+        <div className="relative aspect-square w-full bg-cream lg:aspect-auto lg:h-[calc(100dvh-8.5rem)]">
           <ProductImage
             src={mainImageUrl}
             alt={name}
             sizes="(min-width: 768px) 50vw, 100vw"
             priority
-            fit="contain"
           />
           {allImages.length > 1 && (
             <>
