@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getPromoProducts } from "@/lib/data";
+import { getProductsByCategory } from "@/lib/data";
 import { ProductCard } from "@/components/ProductCard";
 import { DEFAULT_OG_IMAGE } from "@/lib/seo";
 
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 export default async function PromocionesPage() {
-  const products = await getPromoProducts();
+  const products = await getProductsByCategory("promos");
 
   return (
     <>

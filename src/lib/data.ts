@@ -164,18 +164,6 @@ export async function getBestSellers(): Promise<Product[]> {
   return (data ?? []).map(mapProduct);
 }
 
-export async function getPromoProducts(): Promise<Product[]> {
-  const { data, error } = await supabase
-    .from("products")
-    .select(
-      "id, name, category_slug, price, price_3ml, price_10ml, price_full_bottle, original_price, badge, best_seller, on_sale, image_url, description",
-    )
-    .eq("on_sale", true)
-    .order("id", { ascending: true });
-  if (error) throw new Error(`No se pudieron cargar las promociones: ${error.message}`);
-  return (data ?? []).map(mapProduct);
-}
-
 export async function getTestimonials(): Promise<Testimonial[]> {
   const { data, error } = await supabase
     .from("testimonials")

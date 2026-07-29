@@ -77,7 +77,7 @@ export default async function ProductoPage({ params }: { params: Promise<{ id: s
     getProductsByCategory(product.categorySlug),
     getProductImages(productId),
     getCategoryBySlug(product.categorySlug),
-    product.onSale && (product.addonProductId1 != null || product.addonProductId2 != null)
+    product.categorySlug === "promos" && (product.addonProductId1 != null || product.addonProductId2 != null)
       ? getProductAddons(product)
       : Promise.resolve([]),
   ]);
@@ -158,7 +158,6 @@ export default async function ProductoPage({ params }: { params: Promise<{ id: s
         description={product.description}
         fallbackImageUrl={product.imageUrl}
         images={images}
-        onSale={product.onSale}
         addons={addons}
       >
         {related.length > 0 && (

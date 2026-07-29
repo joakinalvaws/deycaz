@@ -18,7 +18,6 @@ export function ProductView({
   description,
   fallbackImageUrl,
   images,
-  onSale,
   addons,
   children,
 }: {
@@ -32,7 +31,6 @@ export function ProductView({
   description: string | null;
   fallbackImageUrl: string | null;
   images: ProductImageData[];
-  onSale: boolean;
   addons: ProductAddon[];
   children?: React.ReactNode;
 }) {
@@ -163,7 +161,6 @@ export function ProductView({
           description={description}
           size={size}
           onSizeChange={handleSizeChange}
-          onSale={onSale}
           addons={addons}
         />
 

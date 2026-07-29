@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getCategoryBySlug, getCategories, getProductsByCategory, getPromoProducts } from "@/lib/data";
+import { getCategoryBySlug, getCategories, getProductsByCategory } from "@/lib/data";
 import { SortableProductGrid } from "@/components/SortableProductGrid";
 import { SITE_URL, DEFAULT_OG_IMAGE } from "@/lib/seo";
 
@@ -45,7 +45,7 @@ export default async function CategoriaPage({ params }: { params: Promise<{ slug
   const category = await getCategoryBySlug(slug);
   if (!category) notFound();
 
-  const products = slug === "promos" ? await getPromoProducts() : await getProductsByCategory(slug);
+  const products = await getProductsByCategory(slug);
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",

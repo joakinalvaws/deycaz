@@ -82,6 +82,8 @@ export function ProductForm({ product }: { product?: Product }) {
   });
 
   const onSale = watch("on_sale");
+  const categorySlug = watch("category_slug");
+  const isPromoCategory = categorySlug === "promos";
 
   async function onSubmit(values: ProductFormValues) {
     try {
@@ -131,13 +133,11 @@ export function ProductForm({ product }: { product?: Product }) {
                     <SelectValue placeholder="Elige una categoría" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories
-                      ?.filter((c) => c.slug !== "promos")
-                      .map((c) => (
-                        <SelectItem key={c.slug} value={c.slug}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
+                    {categories?.map((c) => (
+                      <SelectItem key={c.slug} value={c.slug}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               )}
@@ -145,71 +145,8 @@ export function ProductForm({ product }: { product?: Product }) {
             {errors.category_slug && <p className="text-destructive text-sm">{errors.category_slug.message}</p>}
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="badge">Badge (opcional)</Label>
-            <Input id="badge" placeholder="Ej. MÁS VENDIDO" {...register("badge")} />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="precio" className="flex flex-col gap-4 pt-4">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="price">Precio 5ml</Label>
-            <Input id="price" type="number" step="0.01" {...register("price", { valueAsNumber: true })} />
-            {errors.price && <p className="text-destructive text-sm">{errors.price.message}</p>}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+          {isPromoCategory && (
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="price_3ml">Precio 3ml</Label>
-              <NullableNumberField control={control} name="price_3ml" id="price_3ml" />
-              {errors.price_3ml && <p className="text-destructive text-sm">{errors.price_3ml.message}</p>}
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="price_10ml">Precio 10ml</Label>
-              <NullableNumberField control={control} name="price_10ml" id="price_10ml" />
-              {errors.price_10ml && <p className="text-destructive text-sm">{errors.price_10ml.message}</p>}
-            </div>
-          </div>
-          <p className="text-muted-foreground -mt-2 text-xs">
-            Si dejás 3ml o 10ml vacío, ese tamaño simplemente no se ofrece en la página del producto — no
-            hay ningún cálculo automático.
-          </p>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="price_full_bottle">Precio frasco entero (opcional)</Label>
-            <NullableNumberField control={control} name="price_full_bottle" id="price_full_bottle" />
-            {errors.price_full_bottle && (
-              <p className="text-destructive text-sm">{errors.price_full_bottle.message}</p>
-            )}
-            <p className="text-muted-foreground text-xs">
-              Si lo dejás vacío, este producto no ofrece la opción de frasco entero en la tienda.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Controller
-              control={control}
-              name="on_sale"
-              render={({ field }) => (
-                <Checkbox id="on_sale" checked={field.value} onCheckedChange={field.onChange} />
-              )}
-            />
-            <Label htmlFor="on_sale">En oferta (aparece en Promociones)</Label>
-          </div>
-
-          {onSale && (
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="original_price">Precio anterior del decant de 5ml (tachado)</Label>
-              <NullableNumberField control={control} name="original_price" id="original_price" />
-              {errors.original_price && (
-                <p className="text-destructive text-sm">{errors.original_price.message}</p>
-              )}
-              <p className="text-muted-foreground text-xs">
-                Es lo que costaba este mismo decant de 5ml antes de la oferta — misma escala que el
-                &quot;Precio 5ml&quot; de arriba. No pongas acá el precio del frasco completo (para eso está
-                &quot;Precio frasco entero&quot; en esta misma pestaña).
-              </p>
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <Label>Producto recomendado 1</Label>
@@ -274,9 +211,76 @@ export function ProductForm({ product }: { product?: Product }) {
                   />
                 </div>
               </div>
-              <p className="text-muted-foreground -mt-2 text-xs">
+              <p className="text-muted-foreground text-xs">
                 Aparecen en la sección &quot;Combínalo y ahorra&quot; de este producto, a su propio precio
                 de 5ml.
+              </p>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="badge">Badge (opcional)</Label>
+            <Input id="badge" placeholder="Ej. MÁS VENDIDO" {...register("badge")} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="precio" className="flex flex-col gap-4 pt-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="price">Precio 5ml</Label>
+            <Input id="price" type="number" step="0.01" {...register("price", { valueAsNumber: true })} />
+            {errors.price && <p className="text-destructive text-sm">{errors.price.message}</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="price_3ml">Precio 3ml</Label>
+              <NullableNumberField control={control} name="price_3ml" id="price_3ml" />
+              {errors.price_3ml && <p className="text-destructive text-sm">{errors.price_3ml.message}</p>}
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="price_10ml">Precio 10ml</Label>
+              <NullableNumberField control={control} name="price_10ml" id="price_10ml" />
+              {errors.price_10ml && <p className="text-destructive text-sm">{errors.price_10ml.message}</p>}
+            </div>
+          </div>
+          <p className="text-muted-foreground -mt-2 text-xs">
+            Si dejás 3ml o 10ml vacío, ese tamaño simplemente no se ofrece en la página del producto — no
+            hay ningún cálculo automático.
+          </p>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="price_full_bottle">Precio frasco entero (opcional)</Label>
+            <NullableNumberField control={control} name="price_full_bottle" id="price_full_bottle" />
+            {errors.price_full_bottle && (
+              <p className="text-destructive text-sm">{errors.price_full_bottle.message}</p>
+            )}
+            <p className="text-muted-foreground text-xs">
+              Si lo dejás vacío, este producto no ofrece la opción de frasco entero en la tienda.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Controller
+              control={control}
+              name="on_sale"
+              render={({ field }) => (
+                <Checkbox id="on_sale" checked={field.value} onCheckedChange={field.onChange} />
+              )}
+            />
+            <Label htmlFor="on_sale">En oferta (muestra precio anterior tachado)</Label>
+          </div>
+
+          {onSale && (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="original_price">Precio anterior del decant de 5ml (tachado)</Label>
+              <NullableNumberField control={control} name="original_price" id="original_price" />
+              {errors.original_price && (
+                <p className="text-destructive text-sm">{errors.original_price.message}</p>
+              )}
+              <p className="text-muted-foreground text-xs">
+                Es lo que costaba este mismo decant de 5ml antes de la oferta — misma escala que el
+                &quot;Precio 5ml&quot; de arriba. No pongas acá el precio del frasco completo (para eso está
+                &quot;Precio frasco entero&quot; en esta misma pestaña).
               </p>
             </div>
           )}

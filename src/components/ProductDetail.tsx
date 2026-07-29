@@ -46,7 +46,6 @@ export function ProductDetail({
   description,
   size,
   onSizeChange,
-  onSale,
   addons,
 }: {
   productId: number;
@@ -61,8 +60,6 @@ export function ProductDetail({
   // acá también decide qué foto se muestra en la columna de imagen.
   size: Size;
   onSizeChange: (size: Size) => void;
-  // "Combínalo y ahorra" — solo se muestra si onSale y hay al menos un addon.
-  onSale: boolean;
   addons: ProductAddon[];
 }) {
   const pricing = { price: basePrice, price3ml, price10ml, priceFullBottle };
@@ -189,7 +186,9 @@ export function ProductDetail({
         })}
       </div>
 
-      {onSale && addons.length > 0 && (
+      {/* "Combínalo y ahorra" — solo se muestra en productos de la
+          categoría "promos", y si hay al menos un producto recomendado. */}
+      {categorySlug === "promos" && addons.length > 0 && (
         <ProductAddonPicker addons={addons} selectedIds={selectedAddonIds} onToggle={toggleAddon} />
       )}
 
