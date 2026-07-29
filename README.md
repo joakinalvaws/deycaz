@@ -44,6 +44,12 @@ valores del paso anterior. Si despliegas en Vercel, agrégalas también con
 usa en ningún lado del código) la service role key — todo el acceso a
 Supabase, público y admin por igual, pasa por RLS con la anon key.
 
+Opcional: `RESEND_API_KEY` (cuenta gratis en [resend.com](https://resend.com),
+sin pasar por el marketplace de Vercel, que pide plan pago) — habilita el
+aviso por email cuando llega un mensaje del formulario de Contacto
+(`src/lib/email.ts`). Si falta, el mensaje se guarda igual en la base, solo
+no se manda el email.
+
 ## 3. Desarrollo local
 
 ```bash
@@ -75,8 +81,8 @@ el panel administrativo.
 - `src/lib/pricing.ts` — reglas de precio compartidas por tamaño (3/5/10ml,
   frasco entero). El cálculo que de verdad se cobra vive en la función
   `place_order` (Postgres) — el cliente solo la usa para *mostrar* precios.
-- `src/lib/bundleDiscount.ts` — niveles de descuento de "Arma tu Combo" (ver
-  sección de reglas de negocio abajo). Espejado a mano en `place_order`.
+- `src/lib/bundleDiscount.ts` — tabla de descuentos de "Arma tu Combo" (ver
+  sección de reglas de negocio abajo). Espejada a mano en `place_order`.
 - `src/context/CartContext.tsx` — carrito en `localStorage` (no hay cuentas
   de usuario en el sitio público; es venta a invitados con pago contra
   entrega). Agregar un producto ya no abre el carrito automáticamente —
@@ -100,11 +106,29 @@ el panel administrativo.
   automático por porcentaje que existió al principio del proyecto porque
   daba precios poco atractivos.
 - **"Arma tu Combo"**: precio plano por tamaño (3ml=S/.30, 5ml=S/.45,
-  10ml=S/.75, el frasco entero no participa) igual para cualquier producto,
-  con descuento por **niveles fijos en soles** según la cantidad total de
-  decants de combo en el pedido (1→S/.0, 2→S/.10, 3→S/.20, 4→S/.35,
-  5→S/.45, 6+→S/.50, nunca acumulables) — no es un porcentaje. El descuento
-  se calcula una sola vez sobre el subtotal, nunca por unidad.
+  10ml=S/.75, el frasco entero no participa) igual para cualquier producto.
+  El descuento **ya no es por cantidad total** — es un monto fijo en soles
+  por cada combinación (categoría, tamaño) elegida, según cuántas unidades
+  de esa combinación exacta se pidieron (`COMBO_PAIR_DISCOUNT_TABLE` en
+  `src/lib/bundleDiscount.ts`), y los descuentos de combinaciones distintas
+  se **suman** en el mismo pedido (ej. 3 decants Árabes-3ml + 3
+  Árabes-10ml dan dos descuentos independientes, sumados). Tope: máximo 6
+  unidades por combinación — pasado eso, esa combinación puntual se
+  bloquea en la UI. Solo 4 categorías participan hoy (Nicho, Diseñador,
+  Árabes, Exclusivos) — una categoría nueva necesita su propia fila en la
+  tabla antes de aparecer como opción ahí.
+- **Promociones** (`/promociones`): muestra los productos cuya categoría es
+  `promos` (`category_slug === "promos"`, categoría fija con ese slug —
+  ver `getProductsByCategory("promos")` en `data.ts`). Es independiente
+  del flag `on_sale` (que solo controla el badge "OFERTA"/precio tachado
+  de una card, en cualquier categoría) — un producto puede estar en
+  cualquiera de los dos, ninguno, o ambos.
+- **"Combínalo y ahorra"**: en el PDP de un producto de categoría `promos`
+  se pueden configurar hasta 2 "productos recomendados"
+  (`addon_product_id_1/2` en `products`, admin → Productos → pestaña
+  General). Si el cliente tilda alguno, se agrega al carrito con un
+  descuento fijo de S/.10 (constante `ADDON_DISCOUNT` en
+  `src/lib/pricing.ts`) sobre su propio precio de 5ml.
 - El checkout pide nombre, celular, dirección de entrega y método de envío
   (Delivery Lima o Shalom Provincia, este último pide también DNI y
   agencia) antes de confirmar el pedido — el precio y el costo de envío se

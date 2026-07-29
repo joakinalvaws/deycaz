@@ -20,7 +20,7 @@ pestañas:
 
 | Pestaña | Qué se carga |
 |---|---|
-| **General** | Nombre, categoría, badge (texto opcional tipo "MÁS VENDIDO") |
+| **General** | Nombre, categoría, badge (texto opcional tipo "MÁS VENDIDO"), y (solo si la categoría es Promos) hasta 2 "Producto recomendado" para "Combínalo y ahorra" |
 | **Precio** | Precio base (5ml, obligatorio), precios de 3ml/10ml/frasco entero (opcionales), precio "antes" si está en oferta |
 | **Inventario** | Activo (visible en la tienda), Más vendido (aparece en el riel del inicio) |
 | **Imágenes** | Foto principal, foto por tamaño, galería general (ver sección de fotos) |
@@ -40,15 +40,52 @@ campo que corresponda → Guardar. Se refleja al toque en el sitio.
 
 ---
 
-## Quiero poner un perfume en oferta (que salga en Promociones)
+## Quiero poner un perfume en oferta (badge y precio tachado)
 
-En el formulario del producto:
-- Pestaña **Precio**: activa "En oferta", pon el precio anterior (el que se
-  muestra tachado) y el precio nuevo con descuento en el campo de precio
-  base.
+En el formulario del producto, pestaña **Precio**: activa "En oferta", pon
+el precio anterior (el que se muestra tachado) y el precio nuevo con
+descuento en el campo de precio base.
 
-Aparece automáticamente en `/promociones` y puede salir destacado en el
-inicio si además está marcado como "Más vendido".
+Esto **solo** le agrega el badge "OFERTA" y el precio tachado a la card de
+ese producto, donde sea que aparezca (catálogo, categoría, inicio). **No
+lo hace aparecer en `/promociones`** — para eso ver la siguiente sección.
+Un perfume puede estar "En oferta" sin estar en Promociones, y viceversa;
+son dos cosas independientes.
+
+---
+
+## Quiero que un perfume aparezca en Promociones
+
+Pestaña **General** → **Categoría** → elegí **"Promos"**. Eso es todo: el
+producto aparece automáticamente en `/promociones`, sin importar si además
+está "En oferta" o no.
+
+Pensá esta categoría para perfumes armados como combo/promoción propia
+(con su propia foto, nombre y precio) — no para poner ahí cualquier
+decant suelto que quieras rebajar. Un producto en categoría "Promos" ya
+no aparece en su categoría original (Nicho, Árabes, etc.), solo en
+Promociones.
+
+---
+
+## Quiero armar "Combínalo y ahorra" en un perfume de Promociones
+
+Con el producto en categoría **"Promos"**, en la pestaña **General**,
+justo debajo del selector de Categoría, aparecen dos selectores más:
+**"Producto recomendado 1"** y **"Producto recomendado 2"**. Elegí ahí
+hasta 2 perfumes que quieras ofrecer como complemento — **no hace falta
+que sean parte del pack de la foto**, son productos aparte que se
+sugieren junto a este.
+
+En la página de este producto va a aparecer una sección "Combínalo y
+ahorra" con esos 1-2 perfumes, cada uno con un casillero para tildarlo.
+**El descuento de S/.10 por producto tildado es automático** (no hay que
+configurar nada más) — se calcula siempre en el servidor al confirmar el
+pedido, nunca se puede manipular desde el navegador.
+
+No podés elegir el mismo producto que estás editando, ni repetir el mismo
+en las dos casillas — el formulario ya los saca de la lista solo. Si no
+cargás ninguno, la sección simplemente no aparece en ese producto.
 
 ---
 
@@ -138,10 +175,12 @@ Admin → **Categorías** → "Nueva categoría" o clic en una existente:
 | Foto de fondo | Solo al editar una categoría ya creada — la foto detrás del nombre en los tiles de inicio y `/catalogo`. Sin foto, el tile queda con fondo oscuro liso. |
 
 Una categoría nueva funciona sola en el catálogo y en la página de
-categoría — no hace falta ningún cambio de código. Evita renombrar o
-borrar la categoría `promos`: es "virtual", la página de Promociones no
-filtra por categoría, muestra automáticamente **todo producto con "En
-oferta" activado**, sin importar su categoría real.
+categoría — no hace falta ningún cambio de código. La categoría `promos`
+es la que alimenta `/promociones` (el admin no te deja borrarla, por
+seguridad) — el **nombre** que se muestra sí lo podés cambiar libremente
+desde acá, por ejemplo a "Promociones", si preferís que se lea así en el
+selector de Categoría del producto; eso no rompe nada, la página busca
+por el identificador interno, no por el nombre.
 
 > **"Arma tu Combo" es la excepción**: ahí solo se puede elegir entre
 > Nicho, Diseñador, Árabes y Exclusivos — Damas se excluyó a propósito de
@@ -212,9 +251,10 @@ en las variables de entorno de Vercel.
 
 - **Número de WhatsApp y links de Instagram/TikTok** — fijos en
   `src/lib/constants.ts`.
-- El diseño, textos fijos de las páginas, costo de envío de Lima, niveles
-  de descuento de "Arma tu Combo", el texto fijo de "Envíos y Devoluciones"
-  del PDP.
+- El diseño, textos fijos de las páginas, costo de envío de Lima, la tabla
+  de descuentos de "Arma tu Combo", el monto del descuento de "Combínalo y
+  ahorra" (hoy S/.10 fijo por producto), el texto fijo de "Envíos y
+  Devoluciones" del PDP.
 - Agregar un método de envío nuevo, una pasarela de pago, un rol de admin
   nuevo (hoy solo existe `owner`), o un módulo nuevo del admin (testimonios,
   mensajes de contacto).
